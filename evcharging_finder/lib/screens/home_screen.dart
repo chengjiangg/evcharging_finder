@@ -6,6 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:evcharging_finder/models/station.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -119,7 +121,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         primary: Color(0xFF3EBACE),
                       ),
                       onPressed: () {
-                        print('Pressed');
+                        FirebaseFirestore.instance
+                            .collection('test')
+                            .add({'text': 'data added through'});
                       },
                     ),
                     ElevatedButton(

@@ -5,9 +5,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:evcharging_finder/models/station.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evcharging_finder/widgets/stationCard.dart';
+import 'package:evcharging_finder/models/station.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -19,6 +19,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   HashMap _savedStations = new HashMap<String, Station>();
 
   final LatLng _center = const LatLng(1.2984665333700876, 103.77618826160976);
+
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
+  @override
+  void initState() {
+    _getPosition();
+    populateStations();
+    super.initState();
+  }
 
   Future<Position> _getPosition() async {
     bool serviceEnabled;
@@ -51,121 +60,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     mapController = controller;
   }
 
-  Widget stationCard(Station station) {
-    bool alreadySaved = _savedStations.containsKey(station.name);
-
-    return Container(
-        padding: EdgeInsets.all(10),
-        margin: EdgeInsets.only(right: 20),
-        width: 200.0,
-        height: 100.0,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-          color: Colors.white,
-          boxShadow: [
-            new BoxShadow(
-              color: Colors.grey,
-              blurRadius: 20.0,
-            ),
-          ],
-        ),
-        child: Column(children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(top: 5),
-                child: CircleAvatar(
-                  backgroundImage: station.providerPic,
-                  radius: 35,
-                ),
-              ),
-            ],
-          ),
-          Container(
-              margin: EdgeInsets.only(top: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(station.name,
-                      style: TextStyle(fontWeight: FontWeight.bold))
-                ],
-              )),
-          Container(
-            margin: EdgeInsets.only(top: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text.rich(TextSpan(
-                    text: "Available",
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, color: Color(0xFFB2FF59))))
-              ],
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[Text("0.55km away")],
-            ),
-          ),
-          Container(
-              margin: EdgeInsets.only(top: 12),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    ElevatedButton(
-                      child: FaIcon(FontAwesomeIcons.directions),
-                      style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF3EBACE),
-                      ),
-                      onPressed: () {
-                        FirebaseFirestore.instance
-                            .collection('test')
-                            .add({'text': 'data added through'});
-                      },
-                    ),
-                    ElevatedButton(
-                      child: FaIcon(FontAwesomeIcons.ticketAlt),
-                      style: ElevatedButton.styleFrom(
-                        primary: Color(0xFFF9A825),
-                      ),
-                      onPressed: () {
-                        print('Pressed');
-                      },
-                    ),
-                    GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (alreadySaved) {
-                              _savedStations.remove(station.name);
-                              print("Removed");
-                              //print(_savedStations.length);
-                            } else {
-                              _savedStations.putIfAbsent(
-                                  station.name, () => station);
-                              print("Added");
-                              //print(_savedStations.length);
-                            }
-                          });
-                        },
-                        child: FaIcon(
-                            alreadySaved
-                                ? FontAwesomeIcons.solidHeart
-                                : FontAwesomeIcons.heart,
-                            color: alreadySaved ? Colors.red : Colors.black)),
-                  ]))
-        ]));
+  populateStations() {
+    FirebaseFirestore.instance
+        .collection("stations")
+        .get()
+        .then((querySnapshot) {
+      querySnapshot.docs.forEach((result) {
+        initMarker(result.data(), result.data()["name"], result);
+      });
+    });
   }
 
-  List<Widget> getStationsInArea() {
-    List<Station> stations = getStations();
-    List<Widget> cards = [];
-    for (Station station in stations) {
-      cards.add(stationCard(station));
-    }
-    return cards;
+  void initMarker(station, stationId, querySnapshot) {
+    var markerIdVal = stationId;
+    final MarkerId markerId = MarkerId(markerIdVal);
+
+    final Marker marker = Marker(
+        markerId: markerId,
+        position: LatLng(station["latitude"], station["longitude"]),
+        //infoWindow: InfoWindow(title: station["name"]),
+        onTap: () {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Container(
+                  padding: EdgeInsets.only(
+                      top: 550, bottom: 50, left: 100, right: 100),
+                  child: StationCard(
+                    documentSnapshot: querySnapshot,
+                    name: station["name"],
+                    distanceAway: 0.55,
+                    providerPic: new AssetImage("lib/assets/shell.png"),
+                  ),
+                );
+              });
+        });
+    setState(() {
+      markers[markerId] = marker;
+    });
   }
 
   @override
@@ -180,9 +112,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myLocationButtonEnabled: true,
             initialCameraPosition: CameraPosition(
               target: _center,
-              zoom: 11.0,
+              zoom: 13.0,
             ),
-            markers: _createMarker(),
+            markers: Set<Marker>.of(markers.values),
           ),
           Container(
             margin: EdgeInsets.only(bottom: 600),
@@ -214,14 +146,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
-          Container(
-            padding: EdgeInsets.only(top: 550, bottom: 50),
-            child: ListView(
-              padding: EdgeInsets.only(left: 20),
-              children: getStationsInArea(),
-              scrollDirection: Axis.horizontal,
-            ),
-          )
+          /*Container(
+              padding: EdgeInsets.only(top: 550, bottom: 50),
+              child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection("stations")
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    return !snapshot.hasData
+                        ? Center(child: CircularProgressIndicator())
+                        : ListView.builder(
+                            padding: EdgeInsets.only(left: 20),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: snapshot.data.docs.length,
+                            itemBuilder: (context, index) {
+                              DocumentSnapshot data = snapshot.data.docs[index];
+                              return StationCard(
+                                documentSnapshot: data,
+                                name: data["name"],
+                                distanceAway: 0.55,
+                                providerPic:
+                                    new AssetImage("lib/assets/shell.png"),
+                              );
+                            },
+                          );
+                  }))*/
         ],
       )),
     );
@@ -257,24 +206,6 @@ List<Station> getStations() {
       "lib/assets/shell.png");
   stations.add(shellBoonLay);
   return stations;
-}
-
-Set<Marker> _createMarker() {
-  List<Station> stations = getStations();
-  return {
-    Marker(
-        markerId: MarkerId("marker_1"),
-        position: stations[0].center,
-        infoWindow: InfoWindow(title: stations[0].name)),
-    Marker(
-        markerId: MarkerId("marker_2"),
-        position: stations[1].center,
-        infoWindow: InfoWindow(title: stations[1].name)),
-    Marker(
-        markerId: MarkerId("marker_3"),
-        position: stations[2].center,
-        infoWindow: InfoWindow(title: stations[2].name)),
-  };
 }
 
 /* Retrieve FutureValue

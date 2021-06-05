@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:evcharging_finder/models/station.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/widgets/stationCard.dart';
-import 'package:evcharging_finder/models/station.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -16,7 +16,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   GoogleMapController mapController;
-  HashMap _savedStations = new HashMap<String, Station>();
+  Completer<GoogleMapController> _controller = Completer();
+  BitmapDescriptor sourceIcon;
+  final _savedStations = Set<String>();
 
   final LatLng _center = const LatLng(1.2984665333700876, 103.77618826160976);
 
@@ -24,6 +26,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),
+            'assets/images/carIcon.png')
+        .then((onValue) {
+      sourceIcon = onValue;
+    });
     _getPosition();
     populateStations();
     super.initState();
@@ -66,7 +73,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .get()
         .then((querySnapshot) {
       querySnapshot.docs.forEach((result) {
-        initMarker(result.data(), result.data()["name"], result);
+        Station station = new Station(
+            result.data()["name"],
+            result.data()["address"],
+            0.55,
+            LatLng(result.data()["latitude"], result.data()["longitude"]),
+            new AssetImage("assets/images/shell.png"),
+            "assets/images/shell.png");
+        initMarker(station, result.data()["name"].toString(), result);
       });
     });
   }
@@ -77,26 +91,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final Marker marker = Marker(
         markerId: markerId,
-        position: LatLng(station["latitude"], station["longitude"]),
+        position: station.center,
         //infoWindow: InfoWindow(title: station["name"]),
         onTap: () {
           showDialog(
               context: context,
               builder: (BuildContext context) {
+                bool alreadySaved =
+                    _savedStations.contains(stationId.toString());
                 return Container(
-                  padding: EdgeInsets.only(
-                      top: 550, bottom: 50, left: 100, right: 100),
-                  child: StationCard(
-                    documentSnapshot: querySnapshot,
-                    name: station["name"],
-                    distanceAway: 0.55,
-                    providerPic: new AssetImage("lib/assets/shell.png"),
-                  ),
-                );
+                    padding: EdgeInsets.only(
+                        top: 550, bottom: 50, left: 100, right: 100),
+                    child: StationCard(
+                      documentSnapshot: querySnapshot,
+                      name: station.name,
+                      distanceAway: 0.55,
+                      providerPic: station.providerPic,
+                      alreadySaved: alreadySaved,
+                      onChanged: _handleTapboxChanged,
+                    ));
               });
         });
     setState(() {
       markers[markerId] = marker;
+    });
+  }
+
+  void _handleTapboxChanged(String stationId) {
+    bool alreadySaved = _savedStations.contains(stationId.toString());
+    setState(() {
+      if (alreadySaved) {
+        _savedStations.remove(stationId.toString());
+        print("Removed");
+        //print(_savedStations.length);
+      } else {
+        _savedStations.add(stationId.toString());
+        print("Added");
+        //print(_savedStations.length);
+      }
     });
   }
 
@@ -107,7 +139,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           body: Stack(
         children: <Widget>[
           GoogleMap(
-            onMapCreated: _onMapCreated,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+              setState(() {
+                markers[MarkerId("sourceLoc")] = Marker(
+                  markerId: MarkerId("sourceLoc"),
+                  position: _center,
+                  icon: sourceIcon,
+                  infoWindow: InfoWindow(title: "Home"),
+                );
+              });
+            },
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             initialCameraPosition: CameraPosition(
@@ -146,66 +188,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
-          /*Container(
-              padding: EdgeInsets.only(top: 550, bottom: 50),
-              child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection("stations")
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    return !snapshot.hasData
-                        ? Center(child: CircularProgressIndicator())
-                        : ListView.builder(
-                            padding: EdgeInsets.only(left: 20),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: snapshot.data.docs.length,
-                            itemBuilder: (context, index) {
-                              DocumentSnapshot data = snapshot.data.docs[index];
-                              return StationCard(
-                                documentSnapshot: data,
-                                name: data["name"],
-                                distanceAway: 0.55,
-                                providerPic:
-                                    new AssetImage("lib/assets/shell.png"),
-                              );
-                            },
-                          );
-                  }))*/
         ],
       )),
     );
   }
-}
-
-List<Station> getStations() {
-  List<Station> stations = [];
-  AssetImage shellLogo = new AssetImage("lib/assets/shell.png");
-  AssetImage spgroupLogo = new AssetImage("lib/assets/spgroup.png");
-  Station shellAlexendra = new Station(
-      "Shell Alexandra",
-      "358 ALEXANDRA ROAD",
-      0.55,
-      LatLng(1.2912767667584444, 103.80690717301131),
-      shellLogo,
-      "lib/assets/shell.png");
-  stations.add(shellAlexendra);
-  Station spGroupSciencePark = new Station(
-      "5 Science Park Drive",
-      "5 SCIENCE PARK DRIVE",
-      0.4822,
-      LatLng(1.2925819221245278, 103.78717825220126),
-      spgroupLogo,
-      "lib/assets/spgroup.png");
-  stations.add(spGroupSciencePark);
-  Station shellBoonLay = new Station(
-      "Shell Boon Lay",
-      "2 BOON LAY AVE",
-      0.55,
-      LatLng(1.3442174461123866, 103.70782615475888),
-      shellLogo,
-      "lib/assets/shell.png");
-  stations.add(shellBoonLay);
-  return stations;
 }
 
 /* Retrieve FutureValue

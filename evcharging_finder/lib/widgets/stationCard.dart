@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -7,11 +8,15 @@ class StationCard extends StatefulWidget {
   final double distanceAway;
   final AssetImage providerPic;
   final DocumentSnapshot documentSnapshot;
+  final ValueChanged<String> onChanged;
+  final bool alreadySaved;
   StationCard({
     @required this.name,
     @required this.distanceAway,
     @required this.providerPic,
     @required this.documentSnapshot,
+    @required this.onChanged,
+    this.alreadySaved: false,
   });
 
   @override
@@ -19,6 +24,10 @@ class StationCard extends StatefulWidget {
 }
 
 class _StationCardState extends State<StationCard> {
+  void _handleTap() {
+    widget.onChanged(widget.name);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -104,27 +113,15 @@ class _StationCardState extends State<StationCard> {
                         print("Pressed");
                       },
                     ),
-                    /*
                     GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (alreadySaved) {
-                              _savedStations.remove(station.name);
-                              print("Removed");
-                              //print(_savedStations.length);
-                            } else {
-                              _savedStations.putIfAbsent(
-                                  station.name, () => station);
-                              print("Added");
-                              //print(_savedStations.length);
-                            }
-                          });
-                        },
+                        onTap: _handleTap,
                         child: FaIcon(
-                            alreadySaved
+                            widget.alreadySaved
                                 ? FontAwesomeIcons.solidHeart
                                 : FontAwesomeIcons.heart,
-                            color: alreadySaved ? Colors.red : Colors.black)),*/
+                            color: widget.alreadySaved
+                                ? Colors.red
+                                : Colors.black)),
                   ]))
         ]));
   }

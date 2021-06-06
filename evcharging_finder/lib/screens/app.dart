@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:evcharging_finder/screens/home_screen.dart';
+import 'package:evcharging_finder/home_screen/home_screen.dart';
 import 'package:evcharging_finder/screens/favourites.dart';
 
 class MainApp extends StatefulWidget {

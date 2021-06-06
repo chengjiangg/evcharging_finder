@@ -9,12 +9,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/widgets/stationCard.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomePage extends StatefulWidget {
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   GoogleMapController mapController;
   Completer<GoogleMapController> _controller = Completer();
   BitmapDescriptor sourceIcon;

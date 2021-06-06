@@ -1,5 +1,6 @@
 //import 'dart:js';
 
+import 'package:evcharging_finder/home_screen/home_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:evcharging_finder/screens/complete_profile/complete_profile_screen.dart';
 import 'package:evcharging_finder/screens/forgot_password/forgot_password.dart';
@@ -14,5 +15,6 @@ final Map<String, WidgetBuilder> routes = {
   ForgotPasswordScreen.routeName: (context) => ForgotPasswordScreen(),
   LoginSuccessScreen.routeName: (context) => LoginSuccessScreen(),
   SignUpScreen.routeName: (context) => SignUpScreen(),
-  CompleteProfileScreen.routeName: (context) => CompleteProfileScreen()
+  CompleteProfileScreen.routeName: (context) => CompleteProfileScreen(),
+  HomeScreen.routeName: (context) => HomeScreen(),
 };

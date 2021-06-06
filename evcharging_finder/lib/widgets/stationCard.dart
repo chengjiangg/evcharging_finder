@@ -24,8 +24,19 @@ class StationCard extends StatefulWidget {
 }
 
 class _StationCardState extends State<StationCard> {
+  bool isSaved;
+
+  @override
+  void initState() {
+    isSaved = widget.alreadySaved;
+    super.initState();
+  }
+
   void _handleTap() {
     widget.onChanged(widget.name);
+    setState(() {
+      isSaved = !isSaved;
+    });
   }
 
   @override
@@ -116,12 +127,10 @@ class _StationCardState extends State<StationCard> {
                     GestureDetector(
                         onTap: _handleTap,
                         child: FaIcon(
-                            widget.alreadySaved
+                            isSaved
                                 ? FontAwesomeIcons.solidHeart
                                 : FontAwesomeIcons.heart,
-                            color: widget.alreadySaved
-                                ? Colors.red
-                                : Colors.black)),
+                            color: isSaved ? Colors.red : Colors.black)),
                   ]))
         ]));
   }

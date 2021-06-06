@@ -1,3 +1,4 @@
+import 'package:evcharging_finder/home_screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/default_button.dart';
 import 'package:evcharging_finder/screens/sign_in/sign_in_screen.dart';
@@ -31,7 +32,14 @@ class _BodyState extends State<Body> {
                   children: <Widget>[
                     Spacer(flex: 3),
                     DefaultButton(
-                      text: "Continue",
+                      text: "Continue as Guest",
+                      press: () {
+                        Navigator.pushNamed(context, HomeScreen.routeName);
+                      },
+                    ),
+                    SizedBox(height: getProportionateScreenHeight(30)),
+                    DefaultButton(
+                      text: "Continue as User",
                       press: () {
                         Navigator.pushNamed(context, SignInScreen.routeName);
                       },

@@ -122,15 +122,15 @@ Widget favoriteCard(Station station) {
 
 List<Station> getStations() {
   List<Station> stations = [];
-  AssetImage shellLogo = new AssetImage("lib/assets/shell.png");
-  AssetImage spgroupLogo = new AssetImage("lib/assets/spgroup.png");
+  AssetImage shellLogo = new AssetImage("assets/images/shell.png");
+  AssetImage spgroupLogo = new AssetImage("assets/images/spgroup.png");
   Station shellAlexendra = new Station(
       "Shell Alexandra",
       "358 ALEXANDRA ROAD",
       0.55,
       LatLng(1.2912767667584444, 103.80690717301131),
       shellLogo,
-      "lib/assets/shell.png");
+      "assets/images/shell.png");
   stations.add(shellAlexendra);
   Station spGroupSciencePark = new Station(
       "5 Science Park Drive",
@@ -138,7 +138,7 @@ List<Station> getStations() {
       0.4822,
       LatLng(1.2925819221245278, 103.78717825220126),
       spgroupLogo,
-      "lib/assets/spgroup.png");
+      "assets/images/spgroup.png");
   stations.add(spGroupSciencePark);
   Station shellBoonLay = new Station(
       "Shell Boon Lay",
@@ -146,7 +146,7 @@ List<Station> getStations() {
       0.55,
       LatLng(1.3442174461123866, 103.70782615475888),
       shellLogo,
-      "lib/assets/shell.png");
+      "assets/images/shell.png");
   stations.add(shellBoonLay);
   return stations;
 }

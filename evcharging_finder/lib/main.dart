@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:evcharging_finder/screens/app.dart';
 import 'package:evcharging_finder/routes.dart';
 import 'package:evcharging_finder/screens/splash/Splash_Screen.dart';
 import 'package:evcharging_finder/theme.dart';

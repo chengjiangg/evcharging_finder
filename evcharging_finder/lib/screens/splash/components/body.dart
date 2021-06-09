@@ -1,4 +1,4 @@
-import 'package:evcharging_finder/home_screen/home_screen.dart';
+import 'package:evcharging_finder/screens/home_screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/default_button.dart';
 import 'package:evcharging_finder/screens/sign_in/sign_in_screen.dart';

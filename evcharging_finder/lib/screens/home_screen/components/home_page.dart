@@ -8,6 +8,7 @@ import 'package:evcharging_finder/models/station.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/widgets/stationCard.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -19,6 +20,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Completer<GoogleMapController> _controller = Completer();
   BitmapDescriptor sourceIcon;
   final _savedStations = Set<String>();
+
+  Set<Polyline> _polylines = Set<Polyline>();
+  List<LatLng> polylineCoordinates = [];
+  PolylinePoints polylinePoints;
 
   final LatLng _center = const LatLng(1.2984665333700876, 103.77618826160976);
 
@@ -33,6 +38,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
     _getPosition();
     populateStations();
+    polylinePoints = PolylinePoints();
     super.initState();
   }
 
@@ -85,7 +91,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
-  void initMarker(station, stationId, querySnapshot) {
+  void initMarker(station, stationId, querySnapshot) async {
     var markerIdVal = stationId;
     final MarkerId markerId = MarkerId(markerIdVal);
 
@@ -93,7 +99,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         markerId: markerId,
         position: station.center,
         //infoWindow: InfoWindow(title: station["name"]),
-        onTap: () {
+        onTap: () async {
+          setState(() {
+            _polylines.clear();
+            polylineCoordinates = [];
+          });
           showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -111,10 +121,52 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       onChanged: _handleTapboxChanged,
                     ));
               });
+          PolylineResult result =
+              await polylinePoints.getRouteBetweenCoordinates(
+                  "AIzaSyCA6x5Bdw8K18FZ1JHGkOuZgLLh_OV-W0g",
+                  PointLatLng(_center.latitude, _center.longitude),
+                  PointLatLng(
+                      station.center.latitude, station.center.longitude));
+
+          if (result.status == 'OK') {
+            result.points.forEach((PointLatLng point) {
+              polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+            });
+
+            setState(() {
+              _polylines.add(Polyline(
+                  width: 5,
+                  polylineId: PolylineId('polyLine'),
+                  color: Color(0xFF08A5CB),
+                  points: polylineCoordinates));
+            });
+          }
+          print(result.status);
         });
     setState(() {
       markers[markerId] = marker;
     });
+  }
+
+  void setPolylines(LatLng source, LatLng dest) async {
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+        "<GOOGLE_MAPS_API_KEY_HERE>",
+        PointLatLng(source.latitude, source.longitude),
+        PointLatLng(dest.latitude, dest.longitude));
+
+    if (result.status == 'OK') {
+      result.points.forEach((PointLatLng point) {
+        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+      });
+
+      setState(() {
+        _polylines.add(Polyline(
+            width: 10,
+            polylineId: PolylineId('polyLine'),
+            color: Color(0xFF08A5CB),
+            points: polylineCoordinates));
+      });
+    }
   }
 
   void _handleTapboxChanged(String stationId) {
@@ -152,6 +204,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             },
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
+            polylines: _polylines,
             initialCameraPosition: CameraPosition(
               target: _center,
               zoom: 13.0,

@@ -1,14 +1,14 @@
 import 'dart:async';
-import 'dart:collection';
+import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:evcharging_finder/models/station.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:evcharging_finder/widgets/stationCard.dart';
+import 'package:evcharging_finder/screens/home_screen/components/stationCard.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -19,7 +19,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   GoogleMapController mapController;
   Completer<GoogleMapController> _controller = Completer();
   BitmapDescriptor sourceIcon;
-  final _savedStations = Set<String>();
 
   Set<Polyline> _polylines = Set<Polyline>();
   List<LatLng> polylineCoordinates = [];
@@ -91,36 +90,33 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
+  double _coordinateDistance(lat1, lon1, lat2, lon2) {
+    var p = 0.017453292519943295;
+    var c = cos;
+    var a = 0.5 -
+        c((lat2 - lat1) * p) / 2 +
+        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
+    return 12742 * asin(sqrt(a));
+  }
+
   void initMarker(station, stationId, querySnapshot) async {
     var markerIdVal = stationId;
     final MarkerId markerId = MarkerId(markerIdVal);
+    bool alreadySaved;
+    double totalDistance;
 
     final Marker marker = Marker(
         markerId: markerId,
         position: station.center,
         //infoWindow: InfoWindow(title: station["name"]),
         onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
           setState(() {
             _polylines.clear();
             polylineCoordinates = [];
+            totalDistance = 0.0;
+            alreadySaved = (prefs.getBool(stationId.toString()) ?? false);
           });
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                bool alreadySaved =
-                    _savedStations.contains(stationId.toString());
-                return Container(
-                    padding: EdgeInsets.only(
-                        top: 550, bottom: 50, left: 100, right: 100),
-                    child: StationCard(
-                      documentSnapshot: querySnapshot,
-                      name: station.name,
-                      distanceAway: 0.55,
-                      providerPic: station.providerPic,
-                      alreadySaved: alreadySaved,
-                      onChanged: _handleTapboxChanged,
-                    ));
-              });
           PolylineResult result =
               await polylinePoints.getRouteBetweenCoordinates(
                   "AIzaSyCA6x5Bdw8K18FZ1JHGkOuZgLLh_OV-W0g",
@@ -142,6 +138,31 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             });
           }
           print(result.status);
+          for (int i = 0; i < polylineCoordinates.length - 1; i++) {
+            totalDistance += _coordinateDistance(
+              polylineCoordinates[i].latitude,
+              polylineCoordinates[i].longitude,
+              polylineCoordinates[i + 1].latitude,
+              polylineCoordinates[i + 1].longitude,
+            );
+          }
+          print(totalDistance);
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Container(
+                    padding: EdgeInsets.only(
+                        top: 550, bottom: 50, left: 100, right: 100),
+                    child: StationCard(
+                      documentSnapshot: querySnapshot,
+                      name: station.name,
+                      distanceAway:
+                          double.parse((totalDistance).toStringAsFixed(2)),
+                      providerPic: station.providerPic,
+                      alreadySaved: alreadySaved,
+                      onChanged: _handleTapboxChanged,
+                    ));
+              });
         });
     setState(() {
       markers[markerId] = marker;
@@ -169,15 +190,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  void _handleTapboxChanged(String stationId) {
-    bool alreadySaved = _savedStations.contains(stationId.toString());
+  void _handleTapboxChanged(String stationId) async {
+    bool alreadySaved;
+    final prefs = await SharedPreferences.getInstance();
+    alreadySaved = (prefs.getBool(stationId.toString()) ?? false);
+
     setState(() {
       if (alreadySaved) {
-        _savedStations.remove(stationId.toString());
+        prefs.remove(stationId.toString());
         print("Removed");
         //print(_savedStations.length);
       } else {
-        _savedStations.add(stationId.toString());
+        prefs.setBool(stationId.toString(), true);
         print("Added");
         //print(_savedStations.length);
       }

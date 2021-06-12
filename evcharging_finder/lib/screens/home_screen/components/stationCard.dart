@@ -96,7 +96,7 @@ class _StationCardState extends State<StationCard> {
             margin: EdgeInsets.only(top: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[Text("0.55km away")],
+              children: <Widget>[Text(widget.distanceAway.toString() + " km")],
             ),
           ),
           Container(

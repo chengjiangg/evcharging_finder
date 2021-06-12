@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:evcharging_finder/models/station.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FavouritesPage extends StatefulWidget {
   @override
@@ -9,7 +11,36 @@ class FavouritesPage extends StatefulWidget {
 }
 
 class _FavouritesPageState extends State<FavouritesPage> {
-  List<Station> stations = getStations();
+  List<Station> stations = [];
+
+  @override
+  void initState() {
+    getFav();
+    super.initState();
+  }
+
+  void getFav() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+    keys.forEach((element) {
+      FirebaseFirestore.instance
+          .collection("stations")
+          .doc(element)
+          .get()
+          .then((result) {
+        Station station = new Station(
+            result.data()["name"],
+            result.data()["address"],
+            0.55,
+            LatLng(result.data()["latitude"], result.data()["longitude"]),
+            new AssetImage("assets/images/shell.png"),
+            "assets/images/shell.png");
+        setState(() {
+          stations.add(station);
+        });
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +52,12 @@ class _FavouritesPageState extends State<FavouritesPage> {
           padding: EdgeInsets.symmetric(vertical: 10),
           child: Dismissible(
             key: Key(stations[index].name),
-            onDismissed: (direction) {
+            direction: DismissDirection.endToStart,
+            onDismissed: (direction) async {
+              final prefs = await SharedPreferences.getInstance();
               setState(() {
                 stations.removeAt(index);
+                prefs.remove(stations[index].name);
               });
             },
             background: Container(
@@ -115,35 +149,4 @@ Widget favoriteCard(Station station) {
                       }),
                 ])),
       ]));
-}
-
-List<Station> getStations() {
-  List<Station> stations = [];
-  AssetImage shellLogo = new AssetImage("assets/images/shell.png");
-  AssetImage spgroupLogo = new AssetImage("assets/images/spgroup.png");
-  Station shellAlexendra = new Station(
-      "Shell Alexandra",
-      "358 ALEXANDRA ROAD",
-      0.55,
-      LatLng(1.2912767667584444, 103.80690717301131),
-      shellLogo,
-      "assets/images/shell.png");
-  stations.add(shellAlexendra);
-  Station spGroupSciencePark = new Station(
-      "5 Science Park Drive",
-      "5 SCIENCE PARK DRIVE",
-      0.4822,
-      LatLng(1.2925819221245278, 103.78717825220126),
-      spgroupLogo,
-      "assets/images/spgroup.png");
-  stations.add(spGroupSciencePark);
-  Station shellBoonLay = new Station(
-      "Shell Boon Lay",
-      "2 BOON LAY AVE",
-      0.55,
-      LatLng(1.3442174461123866, 103.70782615475888),
-      shellLogo,
-      "assets/images/shell.png");
-  stations.add(shellBoonLay);
-  return stations;
 }

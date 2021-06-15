@@ -1,3 +1,5 @@
+import 'package:evcharging_finder/screens/splash/Splash_Screen.dart';
+import 'package:evcharging_finder/services/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/custom_surffix_icon.dart';
 import 'package:evcharging_finder/components/default_button.dart';
@@ -46,6 +48,7 @@ class ForgotPassForm extends StatefulWidget {
 }
 
 class _ForgotPassFormState extends State<ForgotPassForm> {
+  TextEditingController _email = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   List<String> errors = [];
   String email;
@@ -56,6 +59,7 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
       child: Column(
         children: [
           TextFormField(
+            controller: _email,
             keyboardType: TextInputType.emailAddress,
             onSaved: (newValue) => email = newValue,
             onChanged: (value) {
@@ -100,7 +104,18 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
             text: "Continue",
             press: () {
               if (_formKey.currentState.validate()) {
-                // Do what you want to do
+                AuthClass()
+                    .resetPassword(
+                  email: _email.text.trim(),
+                )
+                    .then((value) {
+                  if (value == "Email Sent") {
+                    Navigator.pushNamed(context, SplashScreen.routeName);
+                  } else {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(value)));
+                  }
+                });
               }
             },
           ),

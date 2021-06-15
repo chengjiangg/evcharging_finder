@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evcharging_finder/size_config.dart';
 
 class StationCard extends StatefulWidget {
   final String name;
@@ -44,8 +45,8 @@ class _StationCardState extends State<StationCard> {
     return Container(
         padding: EdgeInsets.all(10),
         margin: EdgeInsets.only(right: 20),
-        width: 200.0,
-        height: 100.0,
+        width: getProportionateScreenWidth(400),
+        height: getProportionateScreenHeight(200),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(20)),
           color: Colors.white,

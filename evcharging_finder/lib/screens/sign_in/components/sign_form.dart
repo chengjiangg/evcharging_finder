@@ -1,3 +1,4 @@
+import 'package:evcharging_finder/services/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/custom_surffix_icon.dart';
 import 'package:evcharging_finder/components/default_button.dart';
@@ -15,6 +16,8 @@ class SignForm extends StatefulWidget {
 }
 
 class _SignFormState extends State<SignForm> {
+  TextEditingController _email = TextEditingController();
+  TextEditingController _password = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String email;
   String password;
@@ -77,7 +80,19 @@ class _SignFormState extends State<SignForm> {
                 _formKey.currentState.save();
                 // if all are valid then go to success screen
                 KeyboardUtil.hideKeyboard(context);
-                Navigator.pushNamed(context, LoginSuccessScreen.routeName);
+                AuthClass()
+                    .signIn(
+                  email: _email.text.trim(),
+                  password: _password.text.trim(),
+                )
+                    .then((value) {
+                  if (value == "Welcome") {
+                    Navigator.pushNamed(context, LoginSuccessScreen.routeName);
+                  } else {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(value)));
+                  }
+                });
               }
             },
           ),
@@ -88,6 +103,7 @@ class _SignFormState extends State<SignForm> {
 
   TextFormField buildPasswordFormField() {
     return TextFormField(
+      controller: _password,
       obscureText: true,
       onSaved: (newValue) => password = newValue,
       onChanged: (value) {
@@ -119,6 +135,7 @@ class _SignFormState extends State<SignForm> {
 
   TextFormField buildEmailFormField() {
     return TextFormField(
+      controller: _email,
       keyboardType: TextInputType.emailAddress,
       onSaved: (newValue) => email = newValue,
       onChanged: (value) {

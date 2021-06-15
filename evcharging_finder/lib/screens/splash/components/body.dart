@@ -4,6 +4,7 @@ import 'package:evcharging_finder/components/default_button.dart';
 import 'package:evcharging_finder/screens/sign_in/sign_in_screen.dart';
 import 'package:evcharging_finder/size_config.dart';
 import '../components/splash_content.dart';
+import 'package:location/location.dart';
 
 class Body extends StatefulWidget {
   @override
@@ -11,6 +12,35 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body> {
+  Location location;
+
+  @override
+  void initState() {
+    super.initState();
+    location = new Location();
+    getLocPerm();
+  }
+
+  getLocPerm() async {
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(

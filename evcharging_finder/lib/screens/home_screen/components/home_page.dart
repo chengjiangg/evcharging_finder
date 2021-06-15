@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:evcharging_finder/models/station.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/screens/home_screen/components/stationCard.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:location/location.dart';
+import 'package:evcharging_finder/size_config.dart';
+
+const LatLng SOURCE_LOCATION = LatLng(1.2984665333700876, 103.77618826160976);
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,60 +18,39 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  GoogleMapController mapController;
   Completer<GoogleMapController> _controller = Completer();
+
+  //Markers
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   BitmapDescriptor sourceIcon;
 
+  //Draw routes on map
   Set<Polyline> _polylines = Set<Polyline>();
   List<LatLng> polylineCoordinates = [];
   PolylinePoints polylinePoints;
 
-  final LatLng _center = const LatLng(1.2984665333700876, 103.77618826160976);
-
-  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  //User's inital location and current location as it moves
+  LocationData currentLocation;
+  Location location;
+  LatLng _center;
 
   @override
   void initState() {
-    BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),
-            'assets/images/carIcon.png')
-        .then((onValue) {
-      sourceIcon = onValue;
+    super.initState();
+    location = new Location();
+    location.onLocationChanged.listen((LocationData _currentLocation) {
+      print("${_currentLocation.latitude} : ${_currentLocation.longitude}");
+      currentLocation = _currentLocation;
+      _center = LatLng(currentLocation.latitude, currentLocation.longitude);
+      updatePinOnMap();
     });
-    _getPosition();
+    setInitialLocation();
     populateStations();
     polylinePoints = PolylinePoints();
-    super.initState();
   }
 
-  Future<Position> _getPosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      await Permission.location.request();
-      //return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      if (permission == LocationPermission.denied) {
-        await Permission.location.request();
-        //return Future.error('Location permissions are denied');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      openAppSettings();
-      /*return Future.error(
-          'Location permission are permanently denied, we can request permissions.');*/
-    }
-
-    return await Geolocator.getCurrentPosition();
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+  void setInitialLocation() async {
+    currentLocation = await location.getLocation();
   }
 
   populateStations() {
@@ -81,7 +62,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         Station station = new Station(
             result.data()["name"],
             result.data()["address"],
-            0.55,
             LatLng(result.data()["latitude"], result.data()["longitude"]),
             new AssetImage("assets/images/shell.png"),
             "assets/images/shell.png");
@@ -152,7 +132,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               builder: (BuildContext context) {
                 return Container(
                     padding: EdgeInsets.only(
-                        top: 550, bottom: 50, left: 100, right: 100),
+                        top: getProportionateScreenHeight(400),
+                        bottom: getProportionateScreenHeight(90),
+                        left: getProportionateScreenWidth(50),
+                        right: getProportionateScreenWidth(50)),
                     child: StationCard(
                       documentSnapshot: querySnapshot,
                       name: station.name,
@@ -210,33 +193,34 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    CameraPosition initalCameraPosition;
+    if (currentLocation != null) {
+      initalCameraPosition = CameraPosition(
+        zoom: 13.0,
+        target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      );
+    } else {
+      initalCameraPosition = CameraPosition(
+        zoom: 13.0,
+        target: SOURCE_LOCATION,
+      );
+    }
     return MaterialApp(
       home: Scaffold(
           body: Stack(
         children: <Widget>[
           GoogleMap(
+            initialCameraPosition: initalCameraPosition,
             onMapCreated: (GoogleMapController controller) {
               _controller.complete(controller);
-              setState(() {
-                markers[MarkerId("sourceLoc")] = Marker(
-                  markerId: MarkerId("sourceLoc"),
-                  position: _center,
-                  icon: sourceIcon,
-                  infoWindow: InfoWindow(title: "Home"),
-                );
-              });
             },
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             polylines: _polylines,
-            initialCameraPosition: CameraPosition(
-              target: _center,
-              zoom: 13.0,
-            ),
             markers: Set<Marker>.of(markers.values),
           ),
           Container(
-            margin: EdgeInsets.only(bottom: 600),
+            margin: EdgeInsets.only(bottom: getProportionateScreenHeight(500)),
             child: Center(
               child: Container(
                 padding: EdgeInsets.all(10),
@@ -269,29 +253,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       )),
     );
   }
+
+  void updatePinOnMap() async {
+    //Create a new CameraPosition instance everytime location changes
+    CameraPosition cPosition = CameraPosition(
+      zoom: 13.0,
+      target: LatLng(currentLocation.latitude, currentLocation.longitude),
+    );
+
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
+  }
 }
-
-/* Retrieve FutureValue
-@override
-  Widget build(BuildContext context) {
-
-    return FutureBuilder(
-        future: _getPosition(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasData) {
-              Position snapshotData = snapshot.data;
-              LatLng _userLocation =
-                  LatLng(snapshotData.latitude, snapshotData.longitude);
-              return GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: _userLocation,
-                  zoom: 12,
-                ),
-              );
-            } else {
-              return Center(child: Text("Failed"));
-            }
-          }
-        });
-  }*/

@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evcharging_finder/size_config.dart';
 
 class FavouritesPage extends StatefulWidget {
   @override
@@ -31,7 +32,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
         Station station = new Station(
             result.data()["name"],
             result.data()["address"],
-            0.55,
             LatLng(result.data()["latitude"], result.data()["longitude"]),
             new AssetImage("assets/images/shell.png"),
             "assets/images/shell.png");
@@ -46,6 +46,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
+      color: Color(0xFFF5F5F5),
       child: ListView.builder(
         itemCount: stations.length,
         itemBuilder: (context, index) => Padding(
@@ -56,8 +57,8 @@ class _FavouritesPageState extends State<FavouritesPage> {
             onDismissed: (direction) async {
               final prefs = await SharedPreferences.getInstance();
               setState(() {
-                stations.removeAt(index);
                 prefs.remove(stations[index].name);
+                stations.removeAt(index);
               });
             },
             background: Container(
@@ -100,7 +101,7 @@ Widget favoriteCard(Station station) {
             ),
           ),
         ),
-        SizedBox(width: 20),
+        SizedBox(width: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -122,7 +123,7 @@ Widget favoriteCard(Station station) {
                         color: Color(0xFFB2FF59)))))
           ],
         ),
-        SizedBox(width: 20),
+        SizedBox(width: 10),
         Container(
             alignment: Alignment.centerRight,
             child: Column(
@@ -132,7 +133,8 @@ Widget favoriteCard(Station station) {
                     child: FaIcon(FontAwesomeIcons.directions),
                     style: ElevatedButton.styleFrom(
                       primary: Color(0xFF3EBACE),
-                      minimumSize: Size(100, 40),
+                      minimumSize: Size(getProportionateScreenHeight(80),
+                          getProportionateScreenHeight(35)),
                     ),
                     onPressed: () {
                       print('Pressed');
@@ -142,7 +144,8 @@ Widget favoriteCard(Station station) {
                       child: FaIcon(FontAwesomeIcons.ticketAlt),
                       style: ElevatedButton.styleFrom(
                         primary: Color(0xFFF9A825),
-                        minimumSize: Size(100, 40),
+                        minimumSize: Size(getProportionateScreenHeight(80),
+                            getProportionateScreenHeight(35)),
                       ),
                       onPressed: () {
                         print('Pressed');

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'components/body.dart';
+
 class CompleteProfileScreen extends StatelessWidget {
   static String routeName = "/complete_profile";
   @override
@@ -9,6 +11,7 @@ class CompleteProfileScreen extends StatelessWidget {
         centerTitle: true,
         title: Text("Sign Up"),
       ),
+      body: Body(),
     );
   }
 }

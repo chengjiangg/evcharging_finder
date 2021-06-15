@@ -1,3 +1,4 @@
+import 'package:evcharging_finder/services/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/custom_surffix_icon.dart';
 import 'package:evcharging_finder/components/default_button.dart';
@@ -13,6 +14,8 @@ class SignUpForm extends StatefulWidget {
 }
 
 class _SignUpFormState extends State<SignUpForm> {
+  TextEditingController _email = TextEditingController();
+  TextEditingController _password = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String email;
   String password;
@@ -53,7 +56,21 @@ class _SignUpFormState extends State<SignUpForm> {
               if (_formKey.currentState.validate()) {
                 _formKey.currentState.save();
                 // if all are valid then go to success screen
-                Navigator.pushNamed(context, CompleteProfileScreen.routeName);
+                AuthClass()
+                    .createAccount(
+                  email: _email.text.trim(),
+                  password: _password.text.trim(),
+                )
+                    .then((value) {
+                  if (value == "Account Created") {
+                    Navigator.pushNamed(
+                        context, CompleteProfileScreen.routeName);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(value),
+                    ));
+                  }
+                });
               }
             },
           ),
@@ -97,6 +114,7 @@ class _SignUpFormState extends State<SignUpForm> {
 
   TextFormField buildPasswordFormField() {
     return TextFormField(
+      controller: _password,
       obscureText: true,
       onSaved: (newValue) => password = newValue,
       onChanged: (value) {
@@ -130,6 +148,7 @@ class _SignUpFormState extends State<SignUpForm> {
 
   TextFormField buildEmailFormField() {
     return TextFormField(
+      controller: _email,
       keyboardType: TextInputType.emailAddress,
       onSaved: (newValue) => email = newValue,
       onChanged: (value) {

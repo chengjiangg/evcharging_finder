@@ -127,16 +127,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             );
           }
           print(totalDistance);
-          showDialog(
+          showModalBottomSheet(
               context: context,
+              backgroundColor: Colors.white,
               builder: (BuildContext context) {
-                return Container(
-                    padding: EdgeInsets.only(
-                        top: getProportionateScreenHeight(400),
-                        bottom: getProportionateScreenHeight(90),
-                        left: getProportionateScreenWidth(50),
-                        right: getProportionateScreenWidth(50)),
-                    child: StationCard(
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    StationCard(
                       documentSnapshot: querySnapshot,
                       name: station.name,
                       distanceAway:
@@ -144,7 +142,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       providerPic: station.providerPic,
                       alreadySaved: alreadySaved,
                       onChanged: _handleTapboxChanged,
-                    ));
+                    ),
+                  ],
+                );
               });
         });
     setState(() {
@@ -218,6 +218,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             myLocationButtonEnabled: true,
             polylines: _polylines,
             markers: Set<Marker>.of(markers.values),
+            zoomGesturesEnabled: true,
+            scrollGesturesEnabled: true,
           ),
           Container(
             margin: EdgeInsets.only(bottom: getProportionateScreenHeight(500)),

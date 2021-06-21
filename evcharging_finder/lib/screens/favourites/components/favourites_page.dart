@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/size_config.dart';
+import 'package:evcharging_finder/screens/booking_form/booking_form.dart';
 
 class FavouritesPage extends StatefulWidget {
   @override
@@ -74,7 +75,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
                 ],
               ),
             ),
-            child: favoriteCard(stations[index]),
+            child: favoriteCard(stations[index], context),
           ),
         ),
       ),
@@ -82,7 +83,17 @@ class _FavouritesPageState extends State<FavouritesPage> {
   }
 }
 
-Widget favoriteCard(Station station) {
+void _showBookingPanel(BuildContext context) {
+  showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+            padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
+            child: BookingForm());
+      });
+}
+
+Widget favoriteCard(Station station, BuildContext context) {
   return Container(
       color: Colors.white,
       child: Row(children: [
@@ -148,7 +159,7 @@ Widget favoriteCard(Station station) {
                             getProportionateScreenHeight(35)),
                       ),
                       onPressed: () {
-                        print('Pressed');
+                        _showBookingPanel(context);
                       }),
                 ])),
       ]));

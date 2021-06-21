@@ -12,7 +12,19 @@ class BookingScreen extends StatelessWidget {
         centerTitle: true,
         title: Text("Bookings"),
       ),
+      body: _buildListView(),
       bottomNavigationBar: CustomBottomNavBar(selectedMenu: MenuState.home),
     );
+  }
+
+  ListView _buildListView() {
+    return ListView.builder(
+        itemCount: 10,
+        itemBuilder: (_, index) {
+          return ListTile(
+            title: Text("This is booking number #$index"),
+            leading: Image.asset("assets/images/shell.png"),
+          );
+        });
   }
 }

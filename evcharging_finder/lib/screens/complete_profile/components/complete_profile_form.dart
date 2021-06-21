@@ -1,3 +1,6 @@
+import 'package:evcharging_finder/models/user.dart';
+import 'package:evcharging_finder/screens/home_screen/home_screen.dart';
+import 'package:evcharging_finder/services/firebase_services.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/custom_surffix_icon.dart';
 import 'package:evcharging_finder/components/default_button.dart';
@@ -13,6 +16,16 @@ class CompleteProfileForm extends StatefulWidget {
 
 class _CompleteProfileFormState extends State<CompleteProfileForm> {
   final _formKey = GlobalKey<FormState>();
+
+  TextEditingController _firstnameController = TextEditingController();
+  TextEditingController _lastnameController = TextEditingController();
+  TextEditingController _phonenumberController = TextEditingController();
+  TextEditingController _addressController = TextEditingController();
+
+  AppUser user = AppUser();
+
+  FirebaseFunctions firebaseFunctions = FirebaseFunctions();
+
   final List<String> errors = [];
   String firstName;
   String lastName;
@@ -48,7 +61,33 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           buildAddressFormField(),
           FormError(errors: errors),
           SizedBox(height: getProportionateScreenHeight(40)),
-          DefaultButton(text: "Continue", press: () {}),
+          DefaultButton(
+              text: "Continue",
+              press: () async {
+                String isComplete =
+                    await firebaseFunctions.uploadUserData(user.toMap());
+                if (isComplete == 'true') {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return HomeScreen();
+                      },
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(isComplete)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return CompleteProfileForm();
+                      },
+                    ),
+                  );
+                }
+              }),
         ],
       ),
     );
@@ -56,6 +95,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   TextFormField buildAddressFormField() {
     return TextFormField(
+      controller: _addressController,
       onSaved: (newValue) => address = newValue,
       onChanged: (value) {
         if (value.isNotEmpty) {
@@ -84,6 +124,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   TextFormField buildPhoneNumberFormField() {
     return TextFormField(
+      controller: _phonenumberController,
       keyboardType: TextInputType.phone,
       onSaved: (newValue) => phoneNumber = newValue,
       onChanged: (value) {
@@ -112,6 +153,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   TextFormField buildLastNameFormField() {
     return TextFormField(
+      controller: _lastnameController,
       onSaved: (newValue) => lastName = newValue,
       decoration: InputDecoration(
         labelText: "Last Name",
@@ -126,6 +168,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   TextFormField buildFirstNameFormField() {
     return TextFormField(
+      controller: _firstnameController,
       onSaved: (newValue) => firstName = newValue,
       onChanged: (value) {
         if (value.isNotEmpty) {

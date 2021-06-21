@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/size_config.dart';
+import 'package:evcharging_finder/screens/booking_form/booking_form.dart';
 
 class StationCard extends StatefulWidget {
   final String name;
@@ -42,20 +43,24 @@ class _StationCardState extends State<StationCard> {
 
   @override
   Widget build(BuildContext context) {
+    void _showBookingPanel() {
+      showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return Container(
+                padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
+                child: BookingForm());
+          });
+    }
+
     return Container(
         padding: EdgeInsets.all(10),
         margin: EdgeInsets.only(right: 20),
-        width: getProportionateScreenWidth(400),
-        height: getProportionateScreenHeight(200),
+        width: 200.0,
+        height: 250.0,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(20)),
           color: Colors.white,
-          boxShadow: [
-            new BoxShadow(
-              color: Colors.grey,
-              blurRadius: 20.0,
-            ),
-          ],
         ),
         child: Column(children: <Widget>[
           Row(
@@ -122,7 +127,7 @@ class _StationCardState extends State<StationCard> {
                         primary: Color(0xFFF9A825),
                       ),
                       onPressed: () {
-                        print("Pressed");
+                        _showBookingPanel();
                       },
                     ),
                     GestureDetector(

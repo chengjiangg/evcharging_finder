@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/default_button.dart';
 import 'package:evcharging_finder/size_config.dart';
 
-class Body extends StatelessWidget {
+class Body extends StatefulWidget {
+  @override
+  _BodyState createState() => _BodyState();
+}
+
+class _BodyState extends State<Body> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -28,7 +33,9 @@ class Body extends StatelessWidget {
           child: DefaultButton(
             text: "Back to home",
             press: () {
-              Navigator.pushNamed(context, HomeScreen.routeName);
+              Navigator.pushNamed(context, HomeScreen.routeName).then((_) {
+                setState(() {});
+              });
             },
           ),
         ),

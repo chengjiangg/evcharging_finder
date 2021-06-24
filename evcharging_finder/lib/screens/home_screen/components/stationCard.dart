@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:evcharging_finder/size_config.dart';
 import 'package:evcharging_finder/screens/booking_form/booking_form.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class StationCard extends StatefulWidget {
   final String name;
@@ -12,12 +13,16 @@ class StationCard extends StatefulWidget {
   final DocumentSnapshot documentSnapshot;
   final ValueChanged<String> onChanged;
   final bool alreadySaved;
+  final String latitude;
+  final String longitude;
   StationCard({
     @required this.name,
     @required this.distanceAway,
     @required this.providerPic,
     @required this.documentSnapshot,
     @required this.onChanged,
+    @required this.latitude,
+    @required this.longitude,
     this.alreadySaved: false,
   });
 
@@ -39,6 +44,35 @@ class _StationCardState extends State<StationCard> {
     setState(() {
       isSaved = !isSaved;
     });
+    if (isSaved) {
+      Fluttertoast.showToast(
+        msg: "Station Added",
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+      );
+    } else {
+      Fluttertoast.showToast(
+        msg: "Station Removed",
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+      );
+    }
+  }
+
+  _launchMap() async {
+    String lat = widget.latitude;
+    String lng = widget.longitude;
+    final String googleMapsUrl = "comgooglemaps://?center=$lat,$lng";
+    final String appleMapsUrl = "https://maps.apple.com/?q=$lat,$lng";
+
+    if (await canLaunch(googleMapsUrl)) {
+      await launch(googleMapsUrl);
+    }
+    if (await canLaunch(appleMapsUrl)) {
+      await launch(appleMapsUrl, forceSafariVC: false);
+    } else {
+      throw "Couldn't launch URL";
+    }
   }
 
   @override
@@ -116,9 +150,7 @@ class _StationCardState extends State<StationCard> {
                         primary: Color(0xFF3EBACE),
                       ),
                       onPressed: () {
-                        FirebaseFirestore.instance
-                            .collection('test')
-                            .add({'text': 'data added through'});
+                        _launchMap();
                       },
                     ),
                     ElevatedButton(

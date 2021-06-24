@@ -141,6 +141,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           double.parse((totalDistance).toStringAsFixed(2)),
                       providerPic: station.providerPic,
                       alreadySaved: alreadySaved,
+                      latitude: station.center.latitude.toString(),
+                      longitude: station.center.longitude.toString(),
                       onChanged: _handleTapboxChanged,
                     ),
                   ],

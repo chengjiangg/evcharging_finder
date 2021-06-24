@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/size_config.dart';
 import 'package:evcharging_finder/screens/booking_form/booking_form.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class FavouritesPage extends StatefulWidget {
   @override
@@ -61,6 +63,11 @@ class _FavouritesPageState extends State<FavouritesPage> {
                 prefs.remove(stations[index].name);
                 stations.removeAt(index);
               });
+              Fluttertoast.showToast(
+                msg: "Station Removed",
+                gravity: ToastGravity.CENTER,
+                timeInSecForIosWeb: 2,
+              );
             },
             background: Container(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -93,11 +100,25 @@ void _showBookingPanel(BuildContext context) {
       });
 }
 
+void _launchMap(String lat, String lng) async {
+  final String googleMapsUrl = "comgooglemaps://?center=$lat,$lng";
+  final String appleMapsUrl = "https://maps.apple.com/?q=$lat,$lng";
+
+  if (await canLaunch(googleMapsUrl)) {
+    await launch(googleMapsUrl);
+  }
+  if (await canLaunch(appleMapsUrl)) {
+    await launch(appleMapsUrl, forceSafariVC: false);
+  } else {
+    throw "Couldn't launch URL";
+  }
+}
+
 Widget favoriteCard(Station station, BuildContext context) {
   return Container(
       color: Colors.white,
       child: Row(children: [
-        SizedBox(width: 8.0),
+        SizedBox(width: getProportionateScreenWidth(5.0)),
         SizedBox(
           width: 70,
           child: AspectRatio(
@@ -112,7 +133,7 @@ Widget favoriteCard(Station station, BuildContext context) {
             ),
           ),
         ),
-        SizedBox(width: 10),
+        SizedBox(width: getProportionateScreenWidth(10.0)),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -134,7 +155,7 @@ Widget favoriteCard(Station station, BuildContext context) {
                         color: Color(0xFFB2FF59)))))
           ],
         ),
-        SizedBox(width: 10),
+        SizedBox(width: getProportionateScreenWidth(10.0)),
         Container(
             alignment: Alignment.centerRight,
             child: Column(
@@ -144,11 +165,12 @@ Widget favoriteCard(Station station, BuildContext context) {
                     child: FaIcon(FontAwesomeIcons.directions),
                     style: ElevatedButton.styleFrom(
                       primary: Color(0xFF3EBACE),
-                      minimumSize: Size(getProportionateScreenHeight(80),
-                          getProportionateScreenHeight(35)),
+                      minimumSize: Size(getProportionateScreenHeight(80.0),
+                          getProportionateScreenWidth(35.0)),
                     ),
                     onPressed: () {
-                      print('Pressed');
+                      _launchMap(station.center.latitude.toString(),
+                          station.center.longitude.toString());
                     },
                   ),
                   ElevatedButton(
@@ -156,11 +178,12 @@ Widget favoriteCard(Station station, BuildContext context) {
                       style: ElevatedButton.styleFrom(
                         primary: Color(0xFFF9A825),
                         minimumSize: Size(getProportionateScreenHeight(80),
-                            getProportionateScreenHeight(35)),
+                            getProportionateScreenWidth(35.0)),
                       ),
                       onPressed: () {
                         _showBookingPanel(context);
                       }),
                 ])),
+        SizedBox(width: getProportionateScreenWidth(5.0)),
       ]));
 }

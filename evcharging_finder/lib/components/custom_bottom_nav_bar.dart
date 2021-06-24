@@ -9,14 +9,18 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../constants.dart';
 import '../enums.dart';
 
-class CustomBottomNavBar extends StatelessWidget {
+class CustomBottomNavBar extends StatefulWidget {
+  final MenuState selectedMenu;
   const CustomBottomNavBar({
     Key key,
     @required this.selectedMenu,
   }) : super(key: key);
 
-  final MenuState selectedMenu;
+  @override
+  _CustomBottomNavBarState createState() => _CustomBottomNavBarState();
+}
 
+class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final Color inActiveIconColor = Color(0xFFB6B6B6);
@@ -42,10 +46,13 @@ class CustomBottomNavBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               IconButton(
-                icon: FaIcon(FontAwesomeIcons.mapMarkerAlt),
-                onPressed: () =>
-                    Navigator.pushNamed(context, HomeScreen.routeName),
-              ),
+                  icon: FaIcon(FontAwesomeIcons.mapMarkerAlt),
+                  onPressed: () {
+                    Navigator.pushNamed(context, HomeScreen.routeName)
+                        .then((_) {
+                      setState(() {});
+                    });
+                  }),
               IconButton(
                 icon: FaIcon(FontAwesomeIcons.solidHeart),
                 onPressed: () =>

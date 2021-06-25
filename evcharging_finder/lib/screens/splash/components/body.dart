@@ -64,22 +64,17 @@ class _BodyState extends State<Body> {
                     DefaultButton(
                       text: "Continue as Guest",
                       press: () {
-                        Navigator.pushNamed(context, HomeScreen.routeName);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => HomeScreen()));
                       },
                     ),
                     SizedBox(height: getProportionateScreenHeight(30)),
                     DefaultButton(
                       text: "Continue as User",
                       press: () {
-                        /*
-                        Navigator.pushNamed(context, SignInScreen.routeName)
-                            .then((_) {
-                          setState(() {});
-                        });*/
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => HomeScreen()));
+                        Navigator.pushNamed(context, SignInScreen.routeName);
                       },
                     ),
                     Spacer(),

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:evcharging_finder/models/station.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -133,6 +135,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               builder: (BuildContext context) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     StationCard(
                       documentSnapshot: querySnapshot,
@@ -212,17 +216,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           body: Stack(
         children: <Widget>[
           GoogleMap(
-            initialCameraPosition: initalCameraPosition,
-            onMapCreated: (GoogleMapController controller) {
-              _controller.complete(controller);
-            },
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-            polylines: _polylines,
-            markers: Set<Marker>.of(markers.values),
-            zoomGesturesEnabled: true,
-            scrollGesturesEnabled: true,
-          ),
+              initialCameraPosition: initalCameraPosition,
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+              myLocationEnabled: true,
+              myLocationButtonEnabled: true,
+              polylines: _polylines,
+              markers: Set<Marker>.of(markers.values),
+              zoomGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
+                new Factory<OneSequenceGestureRecognizer>(
+                  () => new EagerGestureRecognizer(),
+                ),
+              ].toSet()),
           Container(
             margin: EdgeInsets.only(bottom: getProportionateScreenHeight(500)),
             child: Center(

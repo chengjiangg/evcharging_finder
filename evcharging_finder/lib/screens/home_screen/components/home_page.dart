@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       print("${_currentLocation.latitude} : ${_currentLocation.longitude}");
       currentLocation = _currentLocation;
       _center = LatLng(currentLocation.latitude, currentLocation.longitude);
-      updatePinOnMap();
+      //updatePinOnMap();
     });
     setInitialLocation();
     populateStations();
@@ -53,6 +53,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   void setInitialLocation() async {
     currentLocation = await location.getLocation();
+    CameraPosition cPosition = CameraPosition(
+      zoom: 13.0,
+      target: LatLng(currentLocation.latitude, currentLocation.longitude),
+    );
+
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
   }
 
   populateStations() {
@@ -199,14 +206,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    CameraPosition initalCameraPosition;
+    CameraPosition initialCPosition;
     if (currentLocation != null) {
-      initalCameraPosition = CameraPosition(
+      initialCPosition = CameraPosition(
         zoom: 13.0,
         target: LatLng(currentLocation.latitude, currentLocation.longitude),
       );
     } else {
-      initalCameraPosition = CameraPosition(
+      initialCPosition = CameraPosition(
         zoom: 13.0,
         target: SOURCE_LOCATION,
       );
@@ -216,9 +223,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           body: Stack(
         children: <Widget>[
           GoogleMap(
-              initialCameraPosition: initalCameraPosition,
+              initialCameraPosition: initialCPosition,
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
+                controller.animateCamera(
+                    CameraUpdate.newCameraPosition(initialCPosition));
               },
               myLocationEnabled: true,
               myLocationButtonEnabled: true,

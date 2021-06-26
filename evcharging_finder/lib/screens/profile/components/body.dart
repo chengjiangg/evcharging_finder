@@ -1,5 +1,7 @@
 import 'package:evcharging_finder/constants.dart';
 import 'package:evcharging_finder/screens/profile/components/profile_pic.dart';
+import 'package:evcharging_finder/screens/splash/Splash_Screen.dart';
+import 'package:evcharging_finder/services/auth_provider.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_svg/svg.dart';
 
@@ -33,7 +35,10 @@ class Body extends StatelessWidget {
         ProfileMenu(
           icon: "assets/icons/Log out.svg",
           text: "Log Out",
-          press: () {},
+          press: () {
+            AuthClass().signOut();
+            Navigator.pushNamed(context, SplashScreen.routeName);
+          },
         ),
       ],
     );

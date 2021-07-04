@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthClass {
   FirebaseAuth auth = FirebaseAuth.instance;
 
+  Stream<User> get authStateChanges => auth.idTokenChanges();
+
   // create Account
   Future<String> createAccount({String email, String password}) async {
     try {
@@ -40,7 +42,6 @@ class AuthClass {
   }
 
   //reset password
-
   Future<String> resetPassword({String email}) async {
     try {
       await auth.sendPasswordResetEmail(email: email);

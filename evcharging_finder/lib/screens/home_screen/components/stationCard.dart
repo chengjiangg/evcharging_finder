@@ -15,6 +15,7 @@ class StationCard extends StatefulWidget {
   final bool alreadySaved;
   final String latitude;
   final String longitude;
+  final bool isAvailable;
   StationCard({
     @required this.name,
     @required this.distanceAway,
@@ -23,6 +24,7 @@ class StationCard extends StatefulWidget {
     @required this.onChanged,
     @required this.latitude,
     @required this.longitude,
+    @required this.isAvailable,
     this.alreadySaved: false,
   });
 
@@ -32,10 +34,12 @@ class StationCard extends StatefulWidget {
 
 class _StationCardState extends State<StationCard> {
   bool isSaved;
+  bool isAvailable = true;
 
   @override
   void initState() {
     isSaved = widget.alreadySaved;
+    checkAvail();
     super.initState();
   }
 
@@ -75,6 +79,37 @@ class _StationCardState extends State<StationCard> {
     }
   }
 
+  void checkAvail() {
+    String timeNow = DateTime.now().hour.toString() + "00";
+    if (timeNow.length == 3) {
+      timeNow = "0" + timeNow;
+    }
+    FirebaseFirestore.instance
+        .collection("stations")
+        .doc(widget.name)
+        .get()
+        .then((result) {
+      FirebaseFirestore.instance
+          .collection("stations")
+          .doc(widget.name)
+          .collection("timeslots")
+          .doc(timeNow)
+          .get()
+          .then((result) {
+        bool available = result.data()["isAvailable"];
+        if (!available) {
+          setState(() {
+            isAvailable = false;
+          });
+        }
+      });
+    });
+  }
+
+  void handleChange(String stationId) {
+    checkAvail();
+  }
+
   @override
   Widget build(BuildContext context) {
     void _showBookingPanel() {
@@ -83,7 +118,8 @@ class _StationCardState extends State<StationCard> {
           builder: (context) {
             return Container(
                 padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
-                child: BookingForm());
+                child: BookingForm(
+                    stationName: widget.name, onChanged: handleChange));
           });
     }
 
@@ -126,9 +162,12 @@ class _StationCardState extends State<StationCard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text.rich(TextSpan(
-                    text: "Available",
+                    text: isAvailable ? "Available" : "Not Available",
                     style: TextStyle(
-                        fontWeight: FontWeight.w600, color: Color(0xFFB2FF59))))
+                        fontWeight: FontWeight.w600,
+                        color: isAvailable
+                            ? Color(0xFFB2FF59)
+                            : Color(0xFFF44336))))
               ],
             ),
           ),
@@ -160,6 +199,7 @@ class _StationCardState extends State<StationCard> {
                       ),
                       onPressed: () {
                         _showBookingPanel();
+                        setState(() {});
                       },
                     ),
                     GestureDetector(

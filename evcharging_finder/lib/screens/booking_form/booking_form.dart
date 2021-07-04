@@ -1,12 +1,36 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evcharging_finder/models/user.dart';
+import 'package:evcharging_finder/services/firebase_services.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class BookingForm extends StatefulWidget {
+  final String stationName;
+  final ValueChanged<String> onChanged;
+  BookingForm({
+    @required this.stationName,
+    @required this.onChanged,
+  });
+
   @override
   _BookingFormState createState() => _BookingFormState();
 }
 
 class _BookingFormState extends State<BookingForm> {
+  TextEditingController _carPlate = TextEditingController();
+  //TextEditingController _timing = TextEditingController();
+  final db = FirebaseFirestore.instance;
   final _formkey = GlobalKey<FormState>();
+
+  BookingUser customer = BookingUser();
+  FirebaseFunctions firebaseFunctions = FirebaseFunctions();
+
+  void initBookingUser() {
+    customer.vehicleNumber = _carPlate.text;
+    customer.timing = _timing;
+    customer.station = widget.stationName;
+  }
+
   final List<String> time = [
     "00:00 - 01:00",
     "01:00 - 02:00",
@@ -33,8 +57,51 @@ class _BookingFormState extends State<BookingForm> {
     "22:00 - 23:00",
     "23:00 - 00:00"
   ];
+  List<String> availTimes = [];
 
-  String _carPlate;
+  @override
+  void initState() {
+    displayAvailTime();
+    super.initState();
+  }
+
+  void displayAvailTime() {
+    String timeNow = DateTime.now().hour.toString() + "00";
+    if (timeNow.length == 3) {
+      timeNow = "0" + timeNow;
+    }
+    int intTimeNow = int.parse(timeNow);
+    //int intTimeNow = 0000;
+    for (int i = 0; i < time.length; i++) {
+      String _timing = time[i].substring(0, 2) + time[i].substring(3, 5);
+      FirebaseFirestore.instance
+          .collection("stations")
+          .doc(widget.stationName)
+          .get()
+          .then((result) {
+        FirebaseFirestore.instance
+            .collection("stations")
+            .doc(widget.stationName)
+            .collection("timeslots")
+            .doc(_timing)
+            .get()
+            .then((result) {
+          bool isAvailable = result.data()["isAvailable"];
+          int dbTime = int.parse(result.data()["time"]);
+          if (isAvailable && (dbTime >= intTimeNow)) {
+            setState(() {
+              availTimes.add(time[i]);
+              availTimes.sort((a, b) {
+                return a.compareTo(b);
+              });
+            });
+          }
+        });
+      });
+    }
+  }
+
+  String carPlate;
   String _timing;
 
   @override
@@ -49,9 +116,10 @@ class _BookingFormState extends State<BookingForm> {
           ),
           SizedBox(height: 20),
           TextFormField(
+            controller: _carPlate,
             validator: (val) =>
                 val.isEmpty ? "Please enter carplate number" : null,
-            onChanged: (val) => setState(() => _carPlate = val),
+            onChanged: (val) => setState(() => carPlate = val),
             decoration: InputDecoration(
               hintText: "Enter your car plate number",
               floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -59,7 +127,7 @@ class _BookingFormState extends State<BookingForm> {
           ),
           SizedBox(height: 20),
           DropdownButtonFormField(
-            items: time.map((timing) {
+            items: availTimes.map((timing) {
               return DropdownMenuItem(
                 value: timing,
                 child: Text(timing),
@@ -74,8 +142,58 @@ class _BookingFormState extends State<BookingForm> {
               style: TextStyle(color: Colors.white),
             ),
             onPressed: () async {
-              print(_carPlate);
-              print(_timing);
+              _timing = _timing.substring(0, 2) + _timing.substring(3, 5);
+              FirebaseFirestore.instance
+                  .collection("stations")
+                  .doc(widget.stationName)
+                  .get()
+                  .then((result) {
+                FirebaseFirestore.instance
+                    .collection("stations")
+                    .doc(widget.stationName)
+                    .collection("timeslots")
+                    .doc(_timing)
+                    .get()
+                    .then((result) {
+                  bool available = result.data()["isAvailable"];
+                  if (available) {
+                    FirebaseFirestore.instance
+                        .collection("stations")
+                        .doc(widget.stationName)
+                        .get()
+                        .then((result) {
+                      FirebaseFirestore.instance
+                          .collection("stations")
+                          .doc(widget.stationName)
+                          .collection("timeslots")
+                          .doc(_timing)
+                          .update({
+                        "isAvailable": false,
+                        "isPeak": false,
+                        "time": _timing
+                      });
+                      widget.onChanged(widget.stationName);
+                    });
+                    Fluttertoast.showToast(
+                      msg: "Booking Success!",
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 2,
+                    );
+                  } else {
+                    Fluttertoast.showToast(
+                      msg: "Booking Failed! Station Booked!",
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 2,
+                    );
+                  }
+                });
+              });
+              initBookingUser();
+              String isComplete =
+                  await firebaseFunctions.uploadBookingInfo(customer.toMap());
+              Navigator.pop(context);
+              //print(_carPlate);
+              //print(_timing);
             },
           )
         ],

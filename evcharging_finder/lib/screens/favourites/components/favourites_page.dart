@@ -26,22 +26,44 @@ class _FavouritesPageState extends State<FavouritesPage> {
   void getFav() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys();
+    String timeNow = DateTime.now().hour.toString() + "00";
+    if (timeNow.length == 3) {
+      timeNow = "0" + timeNow;
+    }
     keys.forEach((element) {
       FirebaseFirestore.instance
           .collection("stations")
           .doc(element)
           .get()
           .then((result) {
-        Station station = new Station(
-            result.data()["name"],
-            result.data()["address"],
-            LatLng(result.data()["latitude"], result.data()["longitude"]),
-            new AssetImage("assets/images/shell.png"),
-            "assets/images/shell.png");
-        setState(() {
-          stations.add(station);
+        String name = result.data()["name"];
+        String address = result.data()["address"];
+        var latLng =
+            LatLng(result.data()["latitude"], result.data()["longitude"]);
+        var image = new AssetImage("assets/images/shell.png");
+        var imageAddress = "assets/images/shell.png";
+        FirebaseFirestore.instance
+            .collection("stations")
+            .doc(element)
+            .collection("timeslots")
+            .doc(timeNow)
+            .get()
+            .then((result) {
+          var isAvailable = result.data()["isAvailable"];
+          Station station = new Station(
+              name, address, latLng, isAvailable, image, imageAddress);
+          setState(() {
+            stations.add(station);
+          });
         });
       });
+    });
+  }
+
+  void handleChange(String stationId) {
+    setState(() {
+      stations.clear();
+      getFav();
     });
   }
 
@@ -82,7 +104,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
                 ],
               ),
             ),
-            child: favoriteCard(stations[index], context),
+            child: favoriteCard(stations[index], context, handleChange),
           ),
         ),
       ),
@@ -90,13 +112,14 @@ class _FavouritesPageState extends State<FavouritesPage> {
   }
 }
 
-void _showBookingPanel(BuildContext context) {
+void _showBookingPanel(
+    BuildContext context, String stationName, ValueChanged<String> stationId) {
   showModalBottomSheet(
       context: context,
       builder: (context) {
         return Container(
             padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
-            child: BookingForm());
+            child: BookingForm(stationName: stationName, onChanged: stationId));
       });
 }
 
@@ -114,7 +137,8 @@ void _launchMap(String lat, String lng) async {
   }
 }
 
-Widget favoriteCard(Station station, BuildContext context) {
+Widget favoriteCard(
+    Station station, BuildContext context, ValueChanged<String> stationId) {
   return Container(
       color: Colors.white,
       child: Row(children: [
@@ -149,10 +173,12 @@ Widget favoriteCard(Station station, BuildContext context) {
             Container(
                 width: 190.0,
                 child: Text.rich(TextSpan(
-                    text: "Available",
+                    text: station.isAvailable ? "Available" : "Not Available",
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFFB2FF59)))))
+                        color: station.isAvailable
+                            ? Color(0xFFB2FF59)
+                            : Color(0xFFF44336)))))
           ],
         ),
         SizedBox(width: getProportionateScreenWidth(10.0)),
@@ -181,7 +207,7 @@ Widget favoriteCard(Station station, BuildContext context) {
                             getProportionateScreenWidth(35.0)),
                       ),
                       onPressed: () {
-                        _showBookingPanel(context);
+                        _showBookingPanel(context, station.name, stationId);
                       }),
                 ])),
         SizedBox(width: getProportionateScreenWidth(5.0)),

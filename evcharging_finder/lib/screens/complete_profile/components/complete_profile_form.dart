@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/models/user.dart';
 import 'package:evcharging_finder/screens/home_screen/home_screen.dart';
 import 'package:evcharging_finder/services/firebase_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/custom_surffix_icon.dart';
 import 'package:evcharging_finder/components/default_button.dart';
@@ -15,22 +18,32 @@ class CompleteProfileForm extends StatefulWidget {
 }
 
 class _CompleteProfileFormState extends State<CompleteProfileForm> {
-  final _formKey = GlobalKey<FormState>();
-
-  TextEditingController _firstnameController = TextEditingController();
-  TextEditingController _lastnameController = TextEditingController();
-  TextEditingController _phonenumberController = TextEditingController();
+  TextEditingController _firstController = TextEditingController();
+  TextEditingController _lastController = TextEditingController();
+  TextEditingController _phoneController = TextEditingController();
   TextEditingController _addressController = TextEditingController();
 
   AppUser user = AppUser();
 
   FirebaseFunctions firebaseFunctions = FirebaseFunctions();
 
-  final List<String> errors = [];
+  void initAppUser() {
+    user.firstName = _firstController.text;
+    user.lastName = _lastController.text;
+    user.phoneNumber = _phoneController.text;
+    user.address = _addressController.text;
+    // user.dpURL = _imageUrl;
+    user.emailID = FirebaseAuth.instance.currentUser.email;
+    user.hasCompleteProfile = true;
+    print(user);
+  }
+
+  final _formKey = GlobalKey<FormState>();
   String firstName;
   String lastName;
   String phoneNumber;
   String address;
+  final List<String> errors = [];
 
   void addError({String error}) {
     if (!errors.contains(error))
@@ -64,6 +77,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           DefaultButton(
               text: "Continue",
               press: () async {
+                initAppUser();
                 String isComplete =
                     await firebaseFunctions.uploadUserData(user.toMap());
                 if (isComplete == 'true') {
@@ -124,7 +138,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   TextFormField buildPhoneNumberFormField() {
     return TextFormField(
-      controller: _phonenumberController,
+      controller: _phoneController,
       keyboardType: TextInputType.phone,
       onSaved: (newValue) => phoneNumber = newValue,
       onChanged: (value) {
@@ -153,7 +167,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   TextFormField buildLastNameFormField() {
     return TextFormField(
-      controller: _lastnameController,
+      controller: _lastController,
       onSaved: (newValue) => lastName = newValue,
       decoration: InputDecoration(
         labelText: "Last Name",
@@ -168,7 +182,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   TextFormField buildFirstNameFormField() {
     return TextFormField(
-      controller: _firstnameController,
+      controller: _firstController,
       onSaved: (newValue) => firstName = newValue,
       onChanged: (value) {
         if (value.isNotEmpty) {

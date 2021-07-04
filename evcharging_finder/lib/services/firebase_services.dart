@@ -37,6 +37,21 @@ class FirebaseFunctions {
     return isComplete;
   }
 
+  // upload booking information
+  Future<String> uploadBookingInfo(Map<String, dynamic> data) async {
+    String isRegistered;
+    User currentUser = FirebaseAuth.instance.currentUser;
+    CollectionReference collectionReference = FirebaseFirestore.instance
+        .collection('users/${currentUser.uid}/booking_details');
+
+    await collectionReference
+        .add(data)
+        .then((_) => isRegistered = 'true')
+        .catchError((e) => isRegistered = e.message);
+    print(isRegistered);
+    return isRegistered;
+  }
+
   // Get data from firestore
   final uid = FirebaseAuth.instance.currentUser.uid;
 
@@ -48,6 +63,23 @@ class FirebaseFunctions {
 
       final decodedData = AppUser.fromMap(userData);
 
+      return decodedData;
+    }
+  }
+
+  Future<BookingUser> getBooking(String key) async {
+    CollectionReference collectionReference =
+        FirebaseFirestore.instance.collection('users/$key/booking_details');
+    final ownerDoc = await collectionReference.doc(key).get();
+    // print('USer id:: ');
+    // print(ownerDoc);
+
+    if (ownerDoc.exists) {
+      final ownerData = ownerDoc.data();
+      // print('Owner Data :: ');
+      // print(ownerData);
+      final decodedData = BookingUser.fromMap(ownerData);
+      // print(decodedData);
       return decodedData;
     }
   }

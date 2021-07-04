@@ -5,9 +5,10 @@ class Station {
   String name;
   String address;
   LatLng center;
+  bool isAvailable;
   AssetImage providerPic;
   String imageURL;
 
-  Station(
-      this.name, this.address, this.center, this.providerPic, this.imageURL);
+  Station(this.name, this.address, this.center, this.isAvailable,
+      this.providerPic, this.imageURL);
 }

@@ -3,8 +3,10 @@ class AppUser {
   String lastName;
   String phoneNumber;
   String address;
+  String emailID;
   // String dpURL;
   bool hasCompleteProfile = false;
+  String uuid;
 
   AppUser();
 
@@ -16,6 +18,8 @@ class AppUser {
       'address': address,
       // 'dpURL': dpURL,
       'hasCompletedProfile': hasCompleteProfile,
+      'emailID': emailID,
+      'uuid': uuid,
     };
   }
 
@@ -26,5 +30,28 @@ class AppUser {
     address = data['address'];
     // dpURL = data['dpURL'];
     hasCompleteProfile = data['hasCompleteProfile'];
+    emailID = data['emailID'];
+    uuid = data['uuid'];
+  }
+}
+
+class BookingUser {
+  String vehicleNumber;
+  String timing;
+  String station;
+
+  BookingUser();
+
+  Map<String, dynamic> toMap() {
+    return {
+      "vehicleNumber": vehicleNumber,
+      "timing": timing,
+      "station": station,
+    };
+  }
+
+  BookingUser.fromMap(Map<String, dynamic> data) {
+    vehicleNumber = data["vehicleNumber"];
+    timing = data["timing"];
   }
 }

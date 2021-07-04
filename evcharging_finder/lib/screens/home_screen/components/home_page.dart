@@ -63,18 +63,33 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   populateStations() {
+    String timeNow = DateTime.now().hour.toString() + "00";
+    if (timeNow.length == 3) {
+      timeNow = "0" + timeNow;
+    }
     FirebaseFirestore.instance
         .collection("stations")
         .get()
         .then((querySnapshot) {
       querySnapshot.docs.forEach((result) {
-        Station station = new Station(
-            result.data()["name"],
-            result.data()["address"],
-            LatLng(result.data()["latitude"], result.data()["longitude"]),
-            new AssetImage("assets/images/shell.png"),
-            "assets/images/shell.png");
-        initMarker(station, result.data()["name"].toString(), result);
+        var name = result.data()["name"];
+        var address = result.data()["address"];
+        var latLng =
+            LatLng(result.data()["latitude"], result.data()["longitude"]);
+        var image = new AssetImage("assets/images/shell.png");
+        var imageAddress = "assets/images/shell.png";
+        FirebaseFirestore.instance
+            .collection("stations")
+            .doc(result.id)
+            .collection("timeslots")
+            .doc(timeNow)
+            .get()
+            .then((result) {
+          var isAvailable = result.data()["isAvailable"];
+          Station station = new Station(
+              name, address, latLng, isAvailable, image, imageAddress);
+          initMarker(station, name, result);
+        });
       });
     });
   }
@@ -155,6 +170,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       latitude: station.center.latitude.toString(),
                       longitude: station.center.longitude.toString(),
                       onChanged: _handleTapboxChanged,
+                      isAvailable: station.isAvailable,
                     ),
                   ],
                 );

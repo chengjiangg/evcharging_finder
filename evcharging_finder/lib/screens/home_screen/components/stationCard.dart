@@ -5,6 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evcharging_finder/screens/booking_form/booking_form.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:evcharging_finder/screens/sign_in/sign_in_screen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class StationCard extends StatefulWidget {
   final String name;
@@ -198,8 +201,16 @@ class _StationCardState extends State<StationCard> {
                         primary: Color(0xFFF9A825),
                       ),
                       onPressed: () {
-                        _showBookingPanel();
-                        setState(() {});
+                        if (FirebaseAuth.instance.currentUser == null) {
+                          Fluttertoast.showToast(
+                            msg: "Please Sign In to Continue",
+                            gravity: ToastGravity.CENTER,
+                            timeInSecForIosWeb: 2,
+                          );
+                          Navigator.pushNamed(context, SignInScreen.routeName);
+                        } else {
+                          _showBookingPanel();
+                        }
                       },
                     ),
                     GestureDetector(

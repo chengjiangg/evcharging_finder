@@ -8,6 +8,8 @@ import 'package:evcharging_finder/size_config.dart';
 import 'package:evcharging_finder/screens/booking_form/booking_form.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:evcharging_finder/screens/sign_in/sign_in_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FavouritesPage extends StatefulWidget {
   @override
@@ -49,7 +51,11 @@ class _FavouritesPageState extends State<FavouritesPage> {
             .doc(timeNow)
             .get()
             .then((result) {
-          var isAvailable = result.data()["isAvailable"];
+          var isAvailable =
+              DateTime.parse(result.data()["dateTimeBooked"]).day ==
+                      DateTime.now().day
+                  ? false
+                  : true;
           Station station = new Station(
               name, address, latLng, isAvailable, image, imageAddress);
           setState(() {
@@ -113,13 +119,17 @@ class _FavouritesPageState extends State<FavouritesPage> {
 }
 
 void _showBookingPanel(
-    BuildContext context, String stationName, ValueChanged<String> stationId) {
+    BuildContext context, Station station, ValueChanged<String> stationId) {
   showModalBottomSheet(
       context: context,
       builder: (context) {
         return Container(
             padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
-            child: BookingForm(stationName: stationName, onChanged: stationId));
+            child: BookingForm(
+                stationName: station.name,
+                latitude: station.center.latitude.toString(),
+                longitude: station.center.longitude.toString(),
+                onChanged: stationId));
       });
 }
 
@@ -207,7 +217,16 @@ Widget favoriteCard(
                             getProportionateScreenWidth(35.0)),
                       ),
                       onPressed: () {
-                        _showBookingPanel(context, station.name, stationId);
+                        if (FirebaseAuth.instance.currentUser == null) {
+                          Fluttertoast.showToast(
+                            msg: "Please Sign In to Continue",
+                            gravity: ToastGravity.CENTER,
+                            timeInSecForIosWeb: 2,
+                          );
+                          Navigator.pushNamed(context, SignInScreen.routeName);
+                        } else {
+                          _showBookingPanel(context, station, stationId);
+                        }
                       }),
                 ])),
         SizedBox(width: getProportionateScreenWidth(5.0)),

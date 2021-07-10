@@ -1,5 +1,6 @@
 import 'package:evcharging_finder/components/custom_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:evcharging_finder/screens/booking_screen/components/booking_page.dart';
 
 import '../../enums.dart';
 
@@ -10,21 +11,14 @@ class BookingScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Bookings"),
+        title: Text("Bookings",
+            style: TextStyle(color: Colors.black, fontSize: 18)),
+        toolbarHeight: 45.0,
+        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFF3EBACE),
       ),
-      body: _buildListView(),
+      body: BookingPage(),
       bottomNavigationBar: CustomBottomNavBar(selectedMenu: MenuState.home),
     );
-  }
-
-  ListView _buildListView() {
-    return ListView.builder(
-        itemCount: 10,
-        itemBuilder: (_, index) {
-          return ListTile(
-            title: Text("This is booking number #$index"),
-            leading: Image.asset("assets/images/shell.png"),
-          );
-        });
   }
 }

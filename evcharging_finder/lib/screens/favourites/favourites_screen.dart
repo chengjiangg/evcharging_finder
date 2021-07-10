@@ -11,7 +11,11 @@ class FavouritesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Favourites"),
+        title: Text("Favourites",
+            style: TextStyle(color: Colors.black, fontSize: 18)),
+        toolbarHeight: 45.0,
+        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFF3EBACE),
       ),
       body: FavouritesPage(),
       bottomNavigationBar: CustomBottomNavBar(selectedMenu: MenuState.home),

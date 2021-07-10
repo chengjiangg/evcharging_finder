@@ -10,7 +10,16 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Search"),
+        title: Text("Nearest Station",
+            style: TextStyle(color: Colors.black, fontSize: 18)),
+        toolbarHeight: 45.0,
+        backgroundColor: Color(0xFF3EBACE),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: HomePage(),
       bottomNavigationBar: CustomBottomNavBar(selectedMenu: MenuState.home),

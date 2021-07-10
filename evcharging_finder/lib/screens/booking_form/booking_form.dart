@@ -6,9 +6,13 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 class BookingForm extends StatefulWidget {
   final String stationName;
+  final String latitude;
+  final String longitude;
   final ValueChanged<String> onChanged;
   BookingForm({
     @required this.stationName,
+    @required this.latitude,
+    @required this.longitude,
     @required this.onChanged,
   });
 
@@ -25,10 +29,13 @@ class _BookingFormState extends State<BookingForm> {
   BookingUser customer = BookingUser();
   FirebaseFunctions firebaseFunctions = FirebaseFunctions();
 
-  void initBookingUser() {
+  void initBookingUser(String dateTimeBooked) {
     customer.vehicleNumber = _carPlate.text;
     customer.timing = _timing;
     customer.station = widget.stationName;
+    customer.latitude = widget.latitude;
+    customer.longitude = widget.longitude;
+    customer.dateTimeBooked = dateTimeBooked;
   }
 
   final List<String> time = [
@@ -71,7 +78,6 @@ class _BookingFormState extends State<BookingForm> {
       timeNow = "0" + timeNow;
     }
     int intTimeNow = int.parse(timeNow);
-    //int intTimeNow = 0000;
     for (int i = 0; i < time.length; i++) {
       String _timing = time[i].substring(0, 2) + time[i].substring(3, 5);
       FirebaseFirestore.instance
@@ -86,7 +92,11 @@ class _BookingFormState extends State<BookingForm> {
             .doc(_timing)
             .get()
             .then((result) {
-          bool isAvailable = result.data()["isAvailable"];
+          bool isAvailable =
+              DateTime.parse(result.data()["dateTimeBooked"]).day ==
+                      DateTime.now().day
+                  ? false
+                  : true;
           int dbTime = int.parse(result.data()["time"]);
           if (isAvailable && (dbTime >= intTimeNow)) {
             setState(() {
@@ -168,6 +178,7 @@ class _BookingFormState extends State<BookingForm> {
                           .collection("timeslots")
                           .doc(_timing)
                           .update({
+                        "dateTimeBooked": DateTime.now().toString(),
                         "isAvailable": false,
                         "isPeak": false,
                         "time": _timing
@@ -188,7 +199,7 @@ class _BookingFormState extends State<BookingForm> {
                   }
                 });
               });
-              initBookingUser();
+              initBookingUser(DateTime.now().toString());
               String isComplete =
                   await firebaseFunctions.uploadBookingInfo(customer.toMap());
               Navigator.pop(context);

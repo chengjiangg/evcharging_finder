@@ -39,6 +39,9 @@ class BookingUser {
   String vehicleNumber;
   String timing;
   String station;
+  String latitude;
+  String longitude;
+  String dateTimeBooked;
 
   BookingUser();
 
@@ -47,6 +50,9 @@ class BookingUser {
       "vehicleNumber": vehicleNumber,
       "timing": timing,
       "station": station,
+      "latitude": latitude,
+      "longitude": longitude,
+      "dateTimeBooked": dateTimeBooked,
     };
   }
 

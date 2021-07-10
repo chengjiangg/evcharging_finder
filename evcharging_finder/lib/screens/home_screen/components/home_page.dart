@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               _polylines.add(Polyline(
                   width: 5,
                   polylineId: PolylineId('polyLine'),
-                  color: Color(0xFF08A5CB),
+                  color: Color(0xFF3EBACE),
                   points: polylineCoordinates));
             });
           }
@@ -256,36 +256,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   () => new EagerGestureRecognizer(),
                 ),
               ].toSet()),
-          Container(
-            margin: EdgeInsets.only(bottom: getProportionateScreenHeight(500)),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    new BoxShadow(
-                      color: Colors.grey,
-                      blurRadius: 20.0,
-                    ),
-                  ],
-                  color: Colors.white,
-                ),
-                height: 50,
-                width: 300,
-                child: TextField(
-                  cursorColor: Colors.black,
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration(
-                      hintText: "Search for Charging Point",
-                      hintStyle: TextStyle(fontFamily: 'Gotham', fontSize: 15),
-                      icon: Icon(Icons.search, color: Colors.black),
-                      border: InputBorder.none,
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.transparent))),
-                ),
-              ),
-            ),
-          ),
         ],
       )),
     );

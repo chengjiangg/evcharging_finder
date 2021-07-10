@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:evcharging_finder/screens/sign_in/sign_in_screen.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class StationCard extends StatefulWidget {
   final String name;
@@ -99,7 +98,10 @@ class _StationCardState extends State<StationCard> {
           .doc(timeNow)
           .get()
           .then((result) {
-        bool available = result.data()["isAvailable"];
+        bool available = DateTime.parse(result.data()["dateTimeBooked"]).day ==
+                DateTime.now().day
+            ? false
+            : true;
         if (!available) {
           setState(() {
             isAvailable = false;
@@ -122,7 +124,10 @@ class _StationCardState extends State<StationCard> {
             return Container(
                 padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
                 child: BookingForm(
-                    stationName: widget.name, onChanged: handleChange));
+                    stationName: widget.name,
+                    latitude: widget.latitude,
+                    longitude: widget.longitude,
+                    onChanged: handleChange));
           });
     }
 

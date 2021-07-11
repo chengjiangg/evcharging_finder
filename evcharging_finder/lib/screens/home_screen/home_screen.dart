@@ -2,6 +2,7 @@ import 'package:evcharging_finder/screens/home_screen/components/home_page.dart'
 import 'package:evcharging_finder/components/custom_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/enums.dart';
+import 'package:evcharging_finder/screens/search/search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static String routeName = "/home_screen";
@@ -17,7 +18,9 @@ class HomeScreen extends StatelessWidget {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.search),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, SearchScreen.routeName);
+            },
           ),
         ],
       ),

@@ -24,34 +24,36 @@ class _BookingPageState extends State<BookingPage> {
   void getBookings() {
     User currentUser = FirebaseAuth.instance.currentUser;
 
-    FirebaseFirestore.instance
-        .collection("users")
-        .doc(currentUser.uid)
-        .get()
-        .then((result) {
+    if (FirebaseAuth.instance.currentUser != null) {
       FirebaseFirestore.instance
           .collection("users")
           .doc(currentUser.uid)
-          .collection("booking_details")
           .get()
-          .then((querySnapshot) {
-        querySnapshot.docs.forEach((result) {
-          Booking booking = new Booking(
-              result.data()["station"],
-              result.data()["vehicleNumber"],
-              result.data()["timing"],
-              LatLng(double.parse(result.data()["latitude"]),
-                  double.parse(result.data()["longitude"])),
-              DateTime.parse(result.data()["dateTimeBooked"]));
-          setState(() {
-            bookings.add(booking);
-            bookings.sort((a, b) {
-              return b.dateTimeBook.compareTo(a.dateTimeBook);
+          .then((result) {
+        FirebaseFirestore.instance
+            .collection("users")
+            .doc(currentUser.uid)
+            .collection("booking_details")
+            .get()
+            .then((querySnapshot) {
+          querySnapshot.docs.forEach((result) {
+            Booking booking = new Booking(
+                result.data()["station"],
+                result.data()["vehicleNumber"],
+                result.data()["timing"],
+                LatLng(double.parse(result.data()["latitude"]),
+                    double.parse(result.data()["longitude"])),
+                DateTime.parse(result.data()["dateTimeBooked"]));
+            setState(() {
+              bookings.add(booking);
+              bookings.sort((a, b) {
+                return b.dateTimeBook.compareTo(a.dateTimeBook);
+              });
             });
           });
         });
       });
-    });
+    }
   }
 
   @override

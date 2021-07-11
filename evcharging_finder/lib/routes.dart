@@ -11,6 +11,7 @@ import 'package:evcharging_finder/screens/splash/Splash_Screen.dart';
 import 'package:evcharging_finder/screens/favourites/favourites_screen.dart';
 import 'package:evcharging_finder/screens/booking_screen/booking_screen.dart';
 import 'package:evcharging_finder/screens/profile/profile_screen.dart';
+import 'package:evcharging_finder/screens/search/search_screen.dart';
 
 final Map<String, WidgetBuilder> routes = {
   SplashScreen.routeName: (context) => SplashScreen(),
@@ -23,4 +24,5 @@ final Map<String, WidgetBuilder> routes = {
   FavouritesScreen.routeName: (context) => FavouritesScreen(),
   BookingScreen.routeName: (context) => BookingScreen(),
   ProfileScreen.routeName: (context) => ProfileScreen(),
+  SearchScreen.routeName: (context) => SearchScreen(),
 };

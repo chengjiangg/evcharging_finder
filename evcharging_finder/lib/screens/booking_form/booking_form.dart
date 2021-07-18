@@ -165,7 +165,11 @@ class _BookingFormState extends State<BookingForm> {
                     .doc(_timing)
                     .get()
                     .then((result) {
-                  bool available = result.data()["isAvailable"];
+                  bool available =
+                      DateTime.parse(result.data()["dateTimeBooked"]).day ==
+                              DateTime.now().day
+                          ? false
+                          : true;
                   if (available) {
                     FirebaseFirestore.instance
                         .collection("stations")

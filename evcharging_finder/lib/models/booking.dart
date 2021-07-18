@@ -6,7 +6,8 @@ class Booking {
   String bookingTiming;
   LatLng center;
   DateTime dateTimeBook;
+  String bookingId;
 
   Booking(this.name, this.vehicleNumber, this.bookingTiming, this.center,
-      this.dateTimeBook);
+      this.dateTimeBook, this.bookingId);
 }

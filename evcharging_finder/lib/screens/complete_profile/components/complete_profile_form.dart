@@ -21,7 +21,6 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
   TextEditingController _firstController = TextEditingController();
   TextEditingController _lastController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
 
   AppUser user = AppUser();
 
@@ -31,19 +30,17 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
     user.firstName = _firstController.text;
     user.lastName = _lastController.text;
     user.phoneNumber = _phoneController.text;
-    user.address = _addressController.text;
     // user.dpURL = _imageUrl;
     user.emailID = FirebaseAuth.instance.currentUser.email;
     user.hasCompleteProfile = true;
-    print(user);
   }
 
   final _formKey = GlobalKey<FormState>();
+  final List<String> errors = [];
   String firstName;
   String lastName;
   String phoneNumber;
   String address;
-  final List<String> errors = [];
 
   void addError({String error}) {
     if (!errors.contains(error))
@@ -70,68 +67,39 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           buildLastNameFormField(),
           SizedBox(height: getProportionateScreenHeight(30)),
           buildPhoneNumberFormField(),
-          SizedBox(height: getProportionateScreenHeight(30)),
-          buildAddressFormField(),
           FormError(errors: errors),
           SizedBox(height: getProportionateScreenHeight(40)),
           DefaultButton(
-              text: "Continue",
-              press: () async {
-                initAppUser();
-                String isComplete =
-                    await firebaseFunctions.uploadUserData(user.toMap());
-                if (isComplete == 'true') {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return HomeScreen();
-                      },
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(isComplete)));
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return CompleteProfileForm();
-                      },
-                    ),
-                  );
+              text: "continue",
+              press: () {
+                if (_formKey.currentState.validate()) {
+                  initAppUser();
+                  String isComplete = "true";
+                  firebaseFunctions.uploadUserData(user.toMap());
+                  if (isComplete == 'true') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return HomeScreen();
+                        },
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(isComplete)));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return CompleteProfileForm();
+                        },
+                      ),
+                    );
+                  }
                 }
               }),
         ],
-      ),
-    );
-  }
-
-  TextFormField buildAddressFormField() {
-    return TextFormField(
-      controller: _addressController,
-      onSaved: (newValue) => address = newValue,
-      onChanged: (value) {
-        if (value.isNotEmpty) {
-          removeError(error: kAddressNullError);
-        }
-        return null;
-      },
-      validator: (value) {
-        if (value.isEmpty) {
-          addError(error: kAddressNullError);
-          return "";
-        }
-        return null;
-      },
-      decoration: InputDecoration(
-        labelText: "Address",
-        hintText: "Enter your phone address",
-        // If  you are using latest version of flutter then lable text and hint text shown like this
-        // if you r using flutter less then 1.20.* then maybe this is not working properly
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon:
-            CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
       ),
     );
   }

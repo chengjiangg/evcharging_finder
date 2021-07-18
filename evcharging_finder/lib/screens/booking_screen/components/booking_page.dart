@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:evcharging_finder/size_config.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class BookingPage extends StatefulWidget {
   @override
@@ -43,7 +44,8 @@ class _BookingPageState extends State<BookingPage> {
                 result.data()["timing"],
                 LatLng(double.parse(result.data()["latitude"]),
                     double.parse(result.data()["longitude"])),
-                DateTime.parse(result.data()["dateTimeBooked"]));
+                DateTime.parse(result.data()["dateTimeBooked"]),
+                result.id);
             setState(() {
               bookings.add(booking);
               bookings.sort((a, b) {
@@ -56,23 +58,88 @@ class _BookingPageState extends State<BookingPage> {
     }
   }
 
+  bool canCancel(DateTime dateTimeBooked, String timeslot) {
+    DateTime dateTimeNow = DateTime.now();
+    int timeNow = dateTimeNow.hour;
+    int bookedTimeslot = int.parse(timeslot.substring(0, 2));
+    DateTime dateNow =
+        new DateTime(dateTimeNow.year, dateTimeNow.month, dateTimeNow.day);
+    DateTime dateBooked = new DateTime(
+        dateTimeBooked.year, dateTimeBooked.month, dateTimeBooked.day);
+    if (dateNow.compareTo(dateBooked) == 0 && bookedTimeslot >= timeNow) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
             color: Color(0xFFF5F5F5),
             child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               itemCount: bookings.length,
               itemBuilder: (context, index) => Padding(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: Dismissible(
-                  key: Key(bookings[index].name),
-                  direction: DismissDirection.none,
+                  key: Key(bookings[index].bookingId),
+                  direction: canCancel(bookings[index].dateTimeBook,
+                          bookings[index].bookingTiming)
+                      ? DismissDirection.endToStart
+                      : DismissDirection.none,
+                  onDismissed: (direction) async {
+                    print(bookings[index].bookingId);
+                    User currentUser = FirebaseAuth.instance.currentUser;
+                    await FirebaseFirestore.instance
+                        .collection("users")
+                        .doc(currentUser.uid)
+                        .get()
+                        .then((result) {
+                      FirebaseFirestore.instance
+                          .collection("users")
+                          .doc(currentUser.uid)
+                          .collection("booking_details")
+                          .doc(bookings[index].bookingId)
+                          .delete()
+                          .then((_) {
+                        print("success!");
+                      });
+                    });
+                    await FirebaseFirestore.instance
+                        .collection("stations")
+                        .doc(bookings[index].name)
+                        .get()
+                        .then((result) {
+                      FirebaseFirestore.instance
+                          .collection("stations")
+                          .doc(bookings[index].name)
+                          .collection("timeslots")
+                          .doc(bookings[index].bookingTiming)
+                          .update(
+                              {"dateTimeBooked": "2021-01-01 00:00:00.000000"});
+                    });
+                    setState(() {
+                      bookings.removeAt(index);
+                    });
+                    Fluttertoast.showToast(
+                      msg: "Booking Canceled",
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 2,
+                    );
+                  },
                   background: Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
                       color: Color(0xFFFFE6E6),
                       borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      children: [
+                        Spacer(),
+                        FaIcon(FontAwesomeIcons.trash),
+                      ],
                     ),
                   ),
                   child: bookingCard(bookings[index]),

@@ -1,3 +1,4 @@
+import 'package:evcharging_finder/screens/verify_screen/verify_screen.dart';
 import 'package:evcharging_finder/services/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:evcharging_finder/components/custom_surffix_icon.dart';
@@ -63,8 +64,7 @@ class _SignUpFormState extends State<SignUpForm> {
                 )
                     .then((value) {
                   if (value == "Account Created") {
-                    Navigator.pushNamed(
-                        context, CompleteProfileScreen.routeName);
+                    Navigator.pushNamed(context, VerifyScreen.routeName);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(value),

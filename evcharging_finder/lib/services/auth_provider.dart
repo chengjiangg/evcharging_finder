@@ -5,6 +5,16 @@ class AuthClass {
 
   Stream<User> get authStateChanges => auth.idTokenChanges();
 
+  // GET UID
+  String getCurrentUID() {
+    return auth.currentUser.uid;
+  }
+
+  // GET CURRENT USER
+  Future getCurrentUser() async {
+    return auth.currentUser;
+  }
+
   // create Account
   Future<String> createAccount({String email, String password}) async {
     try {

@@ -1,7 +1,10 @@
 import 'package:evcharging_finder/constants.dart';
 import 'package:evcharging_finder/screens/profile/components/profile_pic.dart';
+import 'package:evcharging_finder/screens/profile_page/profile_page.dart';
+import 'package:evcharging_finder/screens/sign_in/sign_in_screen.dart';
 import 'package:evcharging_finder/screens/splash/Splash_Screen.dart';
 import 'package:evcharging_finder/services/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_svg/svg.dart';
 
@@ -15,31 +18,30 @@ class Body extends StatelessWidget {
         ProfileMenu(
           icon: "assets/icons/User Icon.svg",
           text: "My Account",
-          press: () {},
-        ),
-        ProfileMenu(
-          icon: "assets/icons/Bell.svg",
-          text: "Notifications",
-          press: () {},
-        ),
-        ProfileMenu(
-          icon: "assets/icons/Settings.svg",
-          text: "Settings",
-          press: () {},
-        ),
-        ProfileMenu(
-          icon: "assets/icons/Question mark.svg",
-          text: "Help Center",
-          press: () {},
-        ),
-        ProfileMenu(
-          icon: "assets/icons/Log out.svg",
-          text: "Log Out",
           press: () {
-            AuthClass().signOut();
-            Navigator.pushNamed(context, SplashScreen.routeName);
+            if (FirebaseAuth.instance.currentUser == null) {
+              Navigator.pushNamed(context, SignInScreen.routeName);
+            } else {
+              Navigator.pushNamed(context, Profilepage.routeName);
+            }
           },
         ),
+        FirebaseAuth.instance.currentUser == null
+            ? ProfileMenu(
+                icon: "assets/icons/Log out.svg",
+                text: "Sign In To Save Your Data",
+                press: () {
+                  Navigator.pushNamed(context, SignInScreen.routeName);
+                },
+              )
+            : ProfileMenu(
+                icon: "assets/icons/Log out.svg",
+                text: "Log Out",
+                press: () {
+                  AuthClass().signOut();
+                  Navigator.pushNamed(context, SplashScreen.routeName);
+                },
+              ),
       ],
     );
   }

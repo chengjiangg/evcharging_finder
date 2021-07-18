@@ -1,6 +1,6 @@
-//import 'dart:js';
-
 import 'package:evcharging_finder/screens/home_screen/home_screen.dart';
+import 'package:evcharging_finder/screens/profile_page/profile_page.dart';
+import 'package:evcharging_finder/screens/verify_screen/verify_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:evcharging_finder/screens/complete_profile/complete_profile_screen.dart';
 import 'package:evcharging_finder/screens/forgot_password/forgot_password.dart';
@@ -25,4 +25,6 @@ final Map<String, WidgetBuilder> routes = {
   BookingScreen.routeName: (context) => BookingScreen(),
   ProfileScreen.routeName: (context) => ProfileScreen(),
   SearchScreen.routeName: (context) => SearchScreen(),
+  VerifyScreen.routeName: (context) => VerifyScreen(),
+  Profilepage.routeName: (context) => Profilepage(),
 };

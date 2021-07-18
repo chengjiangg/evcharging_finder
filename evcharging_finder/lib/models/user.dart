@@ -15,11 +15,9 @@ class AppUser {
       'firstName': firstName,
       'lastName': lastName,
       'phoneNumber': phoneNumber,
-      'address': address,
       // 'dpURL': dpURL,
       'hasCompletedProfile': hasCompleteProfile,
       'emailID': emailID,
-      'uuid': uuid,
     };
   }
 
@@ -27,11 +25,9 @@ class AppUser {
     firstName = data['firstName'];
     lastName = data['lastName'];
     phoneNumber = data['phoneNumber'];
-    address = data['address'];
     // dpURL = data['dpURL'];
     hasCompleteProfile = data['hasCompleteProfile'];
     emailID = data['emailID'];
-    uuid = data['uuid'];
   }
 }
 

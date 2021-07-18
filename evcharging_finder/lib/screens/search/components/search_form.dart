@@ -90,7 +90,11 @@ class _SearchFormState extends State<SearchForm> {
               .doc(timeNow)
               .get()
               .then((result) {
-            var isAvailable = result.data()["isAvailable"];
+            var isAvailable =
+                DateTime.parse(result.data()["dateTimeBooked"]).day ==
+                        DateTime.now().day
+                    ? false
+                    : true;
             Station station = new Station(
                 name, address, latLng, isAvailable, image, imageAddress);
             setState(() {

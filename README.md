@@ -6,10 +6,10 @@
 ### Charging@Where APK
 Download the APK file via this [link](https://drive.google.com/file/d/1CLmcvkwQ5WnRw3oIUXjsWozucN0mqXnl/view?usp=sharing)
 
-### System Flow
+### App Flow
 <img src="https://lh3.googleusercontent.com/d/1uYSV6gBJgq856G5BFkZq2Xo9CQhwV5F1" width="500">
 
-### Project Screens
+### App Screens
 <table>
   <tr>
     <td>Home Screen</td>
